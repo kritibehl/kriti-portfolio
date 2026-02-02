@@ -1,4 +1,5 @@
 // src/app/page.tsx
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 import "./globals.css";
 import React from "react";
@@ -88,7 +89,7 @@ const education: Education[] = [
     period: "August 2024 – December 2025 (Expected)",
     location: "Gainesville, FL",
     details: [
-      "Graduate GPA: 3.77 / 4.00",
+      "Graduate GPA: 3.8 / 4.00",
       "Coursework: Advanced Data Structures, Computer Networks, Distributed Operating Systems Principles, Computer & Network Security, NLP Applications, Programming Language Principles, UX Design, Analysis of Algorithms (in progress).",
     ],
   },
