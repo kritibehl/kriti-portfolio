@@ -52,7 +52,7 @@ const experience: Experience[] = [
   {
     company: "University of Florida",
     role: "Graduate Assistant",
-    period: "December 2024 – Present",
+    period: "December 2024 – December 2025",
     location: "Gainesville, FL, USA",
     achievements: [
       "Coordinated high-churn volunteer scheduling and last-minute changes to keep weekly operations running smoothly",
@@ -86,10 +86,10 @@ const education: Education[] = [
   {
     school: "University of Florida",
     degree: "Master of Science in Computer & Information Science & Engineering",
-    period: "August 2024 – December 2025 (Expected)",
+    period: "August 2024 – December 2025 ",
     location: "Gainesville, FL",
     details: [
-      "Graduate GPA: 3.8 / 4.00",
+      "Graduate GPA: 3.8 / 4.0",
       "Coursework: Advanced Data Structures, Analysis of Algorithms, Computer Networks, Distributed Operating Systems Principles, Computer & Network Security, NLP Applications, Programming Language Principles, UX Design.",
     ],
   },
@@ -293,13 +293,7 @@ export default function Home() {
               LinkedIn
             </Link>
 
-            <Link
-              href="/Kriti_Behl_Resume.pdf"
-              target="_blank"
-              className="rounded-full border border-slate-600 px-3 py-1 text-sm text-slate-200 hover:border-sky-400 hover:text-slate-50"
-            >
-              Resume
-            </Link>
+           
           </nav>
         </header>
 
@@ -356,13 +350,7 @@ export default function Home() {
                 GitHub
               </Link>
 
-              <a
-                href="/Kriti_Behl_Resume.pdf"
-                target="_blank"
-                className="rounded-full border border-slate-600 px-5 py-2.5 text-sm text-slate-200 hover:border-sky-400 hover:text-slate-50"
-              >
-                Download Resume
-              </a>
+        
 
               <a
                 href="#contact"
