@@ -90,7 +90,7 @@ const education: Education[] = [
     location: "Gainesville, FL",
     details: [
       "Graduate GPA: 3.8 / 4.00",
-      "Coursework: Advanced Data Structures, Analysis of Algorithms, Computer Networks, Distributed Operating Systems Principles, Computer & Network Security, NLP Applications, Programming Language Principles, UX Design .",
+      "Coursework: Advanced Data Structures, Analysis of Algorithms, Computer Networks, Distributed Operating Systems Principles, Computer & Network Security, NLP Applications, Programming Language Principles, UX Design.",
     ],
   },
   {
