@@ -704,13 +704,14 @@ export default function Home() {
             </h1>
 
             <p className="mt-6 mx-auto max-w-3xl text-lg text-slate-200 leading-relaxed">
-              I design for <span className="text-sky-300">crashes</span>,{" "}
-              <span className="text-sky-300">nondeterminism</span>, and{" "}
-              <span className="text-sky-300">regressions</span> — then make failures{" "}
-              <span className="text-indigo-300">visible</span>,{" "}
-              <span className="text-indigo-300">reproducible</span> and{" "}
-              <span className="text-indigo-300">fixable</span>.
-            </p>
+  I design for <span className="text-sky-300">crashes</span>,{" "}
+  <span className="text-sky-300">race-driven edge cases</span> and{" "}
+  <span className="text-sky-300">silent regressions</span> — then make failures{" "}
+  <span className="text-indigo-300">visible</span>,{" "}
+  <span className="text-indigo-300">reproducible</span> and{" "}
+  <span className="text-indigo-300">fixable</span>.
+</p>
+
 
             <div className="mt-7 flex flex-wrap justify-center gap-3">
               <a
@@ -852,10 +853,12 @@ export default function Home() {
 
             <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/60 p-5 text-base text-slate-200">
               <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">One narrative</div>
-              <p className="mt-2 leading-relaxed">
-                Together, DetTrace and AccelSim-Lite show how I reason about execution correctness — from modeling how
-                systems run to enforcing how they must behave.
-              </p>
+              <p className="leading-relaxed">
+  If your team deals with <span className="text-sky-300">flaky tests</span>,{" "}
+  <span className="text-sky-300">execution divergence</span>, or{" "}
+  <span className="text-sky-300">hard-to-reproduce regressions</span>, feel free to reach out.
+</p>
+
             </div>
 
             <div className="mt-4">
@@ -1143,12 +1146,21 @@ function ExternalLink({
   children: React.ReactNode;
   className?: string;
 }) {
+  const isHash = href.startsWith("#");
+  const isMail = href.startsWith("mailto:");
+
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+    <a
+      href={href}
+      target={isHash || isMail ? undefined : "_blank"}
+      rel={isHash || isMail ? undefined : "noopener noreferrer"}
+      className={`relative z-10 cursor-pointer pointer-events-auto ${className ?? ""}`}
+    >
       {children}
     </a>
   );
 }
+
 
 function DemoCard({
   kicker,
