@@ -17,7 +17,7 @@
 /* ---------- GLOBAL FONT SCALE (applies to whole site) ---------- */
 /* This is the key: it scales EVERYTHING smoothly */
 html {
-  font-size: clamp(17px, 1.25vw + 10px, 20px);
+  font-size: clamp(17px, 1.15vw + 10px, 20px);
   scroll-behavior: smooth;
 }
 
