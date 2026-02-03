@@ -70,7 +70,7 @@ const CONTACT = {
   github: "https://github.com/kritibehl",
   linkedin: "https://www.linkedin.com/in/kriti-behl/",
   huggingface: "https://huggingface.co/kriti0608",
-  medium: "https://medium.com/@kritibehl",
+  medium: "https://medium.com/@kriti0608",
 };
 
 const FILTERS = [
