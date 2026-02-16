@@ -212,7 +212,7 @@ const demoCards = [
 const faultline: Project = {
   id: "faultline",
   featured: true,
-  label: "Distributed Systems & Execution Correctness (ELITE)",
+  label: "Distributed Systems & Execution Correctness",
   name: "Faultline — Distributed Job Processing System",
 
   oneLiner:
@@ -250,7 +250,7 @@ const faultline: Project = {
 const faireval: Project = {
   id: "faireval",
   featured: true,
-  label: "GenAI Evaluation & Release Safety (ELITE)",
+  label: "GenAI Evaluation & Release Safety ",
   name: "FairEval Suite — Deterministic GenAI Evaluation",
 
   oneLiner:
@@ -290,7 +290,7 @@ const faireval: Project = {
 const reliabilityInfra: Project[] = [
  {
   id: "autoops",
-  label: "Reliability & Release Safety (ELITE)",
+  label: "Reliability & Release Safety",
   name: "AutoOps-Insight — CI/CD Failure Analytics",
 
   oneLiner:
@@ -347,14 +347,14 @@ const reliabilityInfra: Project[] = [
 const executionDeterminism: Project[] = [
   {
   id: "dettrace",
-  label: "Execution Correctness & Verification (ELITE)",
+  label: "Execution Correctness & Verification",
   name: "DetTrace — Deterministic Replay & Invariant Verification",
 
   oneLiner:
-    "Deterministic execution replay engine that converts nondeterministic bugs into reproducible, fail-fast failures.",
+    "Deterministic replay engine that turns flaky concurrency bugs into reproducible, fail-fast failures.",
 
   problem:
-    "Nondeterministic execution makes flaky tests and concurrency bugs difficult to reproduce and diagnose.",
+    "Flaky concurrency and timing-dependent failures are difficult to reproduce and diagnose.",
 
   built:
     "Stable execution trace recording, deterministic replay, and runtime enforcement of ordering and state invariants.",
@@ -383,7 +383,7 @@ const executionDeterminism: Project[] = [
 ,
   {
   id: "accelsim",
-  label: "Systems Modeling (ELITE)",
+  label: "Systems Modeling",
   name: "AccelSim-Lite — CPU / Accelerator Functional Simulator",
 
   oneLiner:
@@ -396,7 +396,7 @@ const executionDeterminism: Project[] = [
     "Deterministic models for compute units, queues, and memory interactions with unit-tested lifecycle transitions.",
 
   proof:
-    "Enables repeatable correctness analysis for execution paths that are otherwise nondeterministic.",
+    "Enables repeatable correctness analysis for execution paths that are otherwise timing- and ordering-sensitive.",
 
   impact: [
     "Models instruction flow, scheduling, and execution latency deterministically.",
