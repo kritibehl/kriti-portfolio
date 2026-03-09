@@ -85,7 +85,7 @@ const experience: Experience[] = [
       "Designed and implemented a backend resource utilization engine that computes time-based efficiency from state transition logs in PostgreSQL.",
       "Built deterministic state-machine logic to derive operational resource state from low-level boolean flags, eliminating inconsistent frontend status computation.",
       "Implemented delta-based timestamp evaluation over ordered event logs to calculate % time in-use across configurable time windows and resource groups.",
-      "Exposed infrastructure metrics via REST endpoints and integrated group-aware observability dashboards for monitoring, capacity analysis, and load imbalance detection.",
+      "Exposed infrastructure metrics via REST endpoints and integrated group-aware observability dashboards for monitoring, capacity analysis and load imbalance detection.",
     ],
   },
   {
@@ -203,11 +203,11 @@ const faultline: Project = {
   label: "Distributed Systems & Execution Correctness",
   name: "Faultline — Distributed Job Processing System",
   oneLiner:
-    "Crash-safe distributed job execution system with lease-based ownership, fencing tokens, and deterministic validation under reclaim races.",
+    "Crash-safe distributed job execution system with lease-based ownership, fencing token and deterministic validation under reclaim races.",
   problem:
-    "Retries and mid-execution crashes in distributed job systems can cause duplicate execution, stale writes, and unclear recovery behavior.",
+    "Retries and mid-execution crashes in distributed job systems can cause duplicate execution, stale writes and unclear recovery behavior.",
   built:
-    "Built a PostgreSQL-backed execution platform with row-level locking, atomic lease acquisition, fencing tokens, crash reconciliation, lease reaping, bounded exponential backoff, and database-enforced idempotency.",
+    "Built a PostgreSQL-backed execution platform with row-level locking, atomic lease acquisition, fencing tokens, crash reconciliation, lease reaping, bounded exponential backoff and database-enforced idempotency.",
   proof:
     "Validated across 500 deterministic race reproductions with 0 duplicate commits and 500 stale-write rejections confirmed.",
   metrics: [
@@ -243,9 +243,9 @@ const kubePulse: Project = {
   problem:
     "Services often appear healthy until CPU, latency, dependency, or probe failures expose blind spots in recovery behavior and health signals.",
   built:
-    "Built a FastAPI control plane, declarative YAML scenarios, real metrics probing, baseline-vs-observed comparison, readiness false-positive detection, and automated resilience scorecards.",
+    "Built a FastAPI control plane, declarative YAML scenarios, real metrics probing, baseline-vs-observed comparison, readiness false-positive detection and automated resilience scorecards.",
   proof:
-    "Validated a CPU-stress scenario with 8s recovery, ~210 ms p95 latency, ~2% error rate, and an overall resilience score of 86/100.",
+    "Validated a CPU-stress scenario with 8s recovery, ~210 ms p95 latency, ~2% error rate and an overall resilience score of 86/100.",
   metrics: [
     "8s recovery window",
     "~210 ms p95 latency",
@@ -279,7 +279,7 @@ const detTrace: Project = {
   problem:
     "Flaky concurrent failures are difficult to root-cause because downstream symptoms hide the first ordering mistake.",
   built:
-    "Built expected-trace capture, guarded replay, event-level comparison, divergence reporting, and a flaky-case walkthrough for concurrent ordering failures.",
+    "Built expected-trace capture, guarded replay, event-level comparison, divergence reporting and a flaky-case walkthrough for concurrent ordering failures.",
   proof:
     "Deterministically isolated the first mismatch at event index 5 in a flaky ordering case while preserving 4 debugging artifacts per run.",
   metrics: [
@@ -310,13 +310,13 @@ const autoOps: Project = {
   label: "Reliability Analytics & Release Safety",
   name: "AutoOps-Insight — CI / Infrastructure Failure Analytics",
   oneLiner:
-    "Reliability analytics platform that converts raw CI and infrastructure logs into structured incident records, recurrence tracking, and release-risk summaries.",
+    "Reliability analytics platform that converts raw CI and infrastructure logs into structured incident records, recurrence tracking and release-risk summaries.",
   problem:
     "CI/CD pipelines generate volume, not insight; recurring regressions and release blockers hide behind per-run log noise.",
   built:
-    "Built a FastAPI + CLI + dashboard + CI system with rule-based plus ML-backed failure classification, stable signature fingerprinting, SQLite history, recurrence tracking, and Markdown/JSON reporting.",
+    "Built a FastAPI + CLI + dashboard + CI system with rule-based plus ML-backed failure classification, stable signature fingerprinting, SQLite history, recurrence tracking and Markdown/JSON reporting.",
   proof:
-    "Classifies failures across 11 families and ships with 11 API endpoints, 5 Prometheus counters, 14 passing tests, and recurrence-aware release-risk reporting.",
+    "Classifies failures across 11 families and ships with 11 API endpoints, 5 Prometheus counters, 14 passing tests and recurrence-aware release-risk reporting.",
   metrics: [
     "11 failure families",
     "11 FastAPI endpoints",
@@ -324,8 +324,8 @@ const autoOps: Project = {
     "14 passing tests",
   ],
   impact: [
-    "Turns noisy logs into structured incident artifacts with severity, ownership hints, remediation steps, and stable signatures.",
-    "Detects recurring failures and aggregates release risk across API, CLI, dashboard, and CI workflows.",
+    "Turns noisy logs into structured incident artifacts with severity, ownership hints, remediation steps and stable signatures.",
+    "Detects recurring failures and aggregates release risk across API, CLI, dashboard and CI workflows.",
     "Exports artifacts suitable for headless CI analysis and human-readable incident review.",
     "Stays explainable through deterministic rule layers and lightweight anomaly heuristics.",
   ],
@@ -348,13 +348,13 @@ const resuMate: Project = {
   label: "Workflow Engine & Backend Tooling",
   name: "ResuMate — API-First Document Analysis Workflow Engine",
   oneLiner:
-    "FastAPI workflow engine for structured document analysis, job history, batching, diffing, exports, and repeatable automation.",
+    "FastAPI workflow engine for structured document analysis, job history, batching, diffing, exports and repeatable automation.",
   problem:
-    "Repeated document-analysis workflows become slow and inconsistent without stable contracts, history, diffing, and exportable outputs.",
+    "Repeated document-analysis workflows become slow and inconsistent without stable contracts, history, diffing and exportable outputs.",
   built:
-    "Refactored a prototype into a modular backend with jobs, versions, history, batches, diffing, exports, fingerprinting, and dashboard metrics.",
+    "Refactored a prototype into a modular backend with jobs, versions, history, batches, diffing, exports, fingerprinting and dashboard metrics.",
   proof:
-    "Implements 12 FastAPI endpoints across 34 Python source files with 10 test files, 5 passing smoke tests, 2 export modes, and 7 workflow capabilities.",
+    "Implements 12 FastAPI endpoints across 34 Python source files with 10 test files, 5 passing smoke tests, 2 export modes and 7 workflow capabilities.",
   metrics: [
     "12 API endpoints",
     "34 Python files",
@@ -363,9 +363,9 @@ const resuMate: Project = {
   ],
   impact: [
     "Treats document analysis as a repeatable workflow engine instead of a one-shot text generator.",
-    "Supports batch jobs, version/history inspection, and run-to-run diffing for iterative workflows.",
+    "Supports batch jobs, version/history inspection and run-to-run diffing for iterative workflows.",
     "Exports JSON and Markdown artifacts suitable for automation and review.",
-    "Surfaces recent jobs, summary metrics, and repeated-input stability through dashboard endpoints.",
+    "Surfaces recent jobs, summary metrics and repeated-input stability through dashboard endpoints.",
   ],
   stack: ["Python", "FastAPI", "Pydantic", "Streamlit", "Workflow APIs"],
   links: [{ href: "https://github.com/kritibehl/ResuMate", label: "GitHub" }],
@@ -377,13 +377,13 @@ const chromeCopilot: Project = {
   label: "Developer Productivity & Debugging Workflows",
   name: "Chrome Copilot — Workflow-First Browser Debugging Assistant",
   oneLiner:
-    "Privacy-aware browser debugging assistant with structured parsing, signature clustering, local fallback analysis, and issue-summary export.",
+    "Privacy-aware browser debugging assistant with structured parsing, signature clustering, local fallback analysis and issue-summary export.",
   problem:
-    "Debugging slows down when logs are noisy, repeated failures are rediscovered from scratch, and context is scattered across tools.",
+    "Debugging slows down when logs are noisy, repeated failures are rediscovered from scratch and context is scattered across tools.",
   built:
-    "Built browser-side context capture, deterministic parsing and classification, normalized signature clustering, cache-aware repeated triage, local-only mode, and Markdown issue-summary export.",
+    "Built browser-side context capture, deterministic parsing and classification, normalized signature clustering, cache-aware repeated triage, local-only mode and Markdown issue-summary export.",
   proof:
-    "Validated across 5 representative browser/frontend error categories and 1,000 benchmarked runs with 100% report completeness, 80% noisy-variant cluster stability, and workflow reduction from 8 manual steps to 3.",
+    "Validated across 5 representative browser/frontend error categories and 1,000 benchmarked runs with 100% report completeness, 80% noisy-variant cluster stability and workflow reduction from 8 manual steps to 3.",
   metrics: [
     "1,000 benchmarked runs",
     "100% report completeness",
@@ -414,11 +414,11 @@ const accelSim: Project = {
   label: "Systems Modeling & Performance Reasoning",
   name: "AccelSim-Lite — Deterministic Compute-Pipeline Simulator",
   oneLiner:
-    "Deterministic C++ compute-pipeline simulator for workload latency, throughput, queue pressure, and bottleneck analysis.",
+    "Deterministic C++ compute-pipeline simulator for workload latency, throughput, queue pressure and bottleneck analysis.",
   problem:
     "Performance-sensitive execution paths are difficult to reason about without deterministic workload models and structured bottleneck metrics.",
   built:
-    "Built a 7-stage pipeline simulator with 3 operation classes, configurable compute/memory limits, dependency-aware scheduling, and structured report export.",
+    "Built a 7-stage pipeline simulator with 3 operation classes, configurable compute/memory limits, dependency-aware scheduling and structured report export.",
   proof:
     "Ships with 4 workload classes, 5 stall categories, 6 report artifacts, and CLI-driven run/compare/benchmark workflows for repeatable performance analysis.",
   metrics: [
@@ -428,9 +428,9 @@ const accelSim: Project = {
     "5 stall categories",
   ],
   impact: [
-    "Models workload latency, throughput, queue occupancy, utilization, and dominant bottlenecks under constrained resources.",
-    "Supports compute-heavy, memory-heavy, queue-pressure, and mixed workload comparison.",
-    "Exports text, JSON, and CSV artifacts for repeatable analysis and plotting.",
+    "Models workload latency, throughput, queue occupancy, utilization and dominant bottlenecks under constrained resources.",
+    "Supports compute-heavy, memory-heavy, queue-pressure and mixed workload comparison.",
+    "Exports text, JSON and CSV artifacts for repeatable analysis and plotting.",
     "Provides architecture/performance signal without overstating hardware fidelity.",
   ],
   stack: [
@@ -451,11 +451,11 @@ const fairEval: Project = {
   label: "ML Evaluation & Release Safety",
   name: "FairEval Suite — CI-Integrated Evaluation & Regression Gating",
   oneLiner:
-    "Deterministic evaluation framework that compares model variants, detects silent regressions, and produces versioned release-gate artifacts.",
+    "Deterministic evaluation framework that compares model variants, detects silent regressions and produces versioned release-gate artifacts.",
   problem:
-    "Model behavior drifts silently across prompt, model, and retrieval changes, but most evaluations are not CI-integrated or release-gated.",
+    "Model behavior drifts silently across prompt, model and retrieval changes, but most evaluations are not CI-integrated or release-gated.",
   built:
-    "Built dataset-driven evaluation runs, baseline-vs-candidate comparison, threshold-based gates, versioned artifacts, and CLI + GitHub Actions workflows.",
+    "Built dataset-driven evaluation runs, baseline-vs-candidate comparison, threshold-based gates, versioned artifacts and CLI + GitHub Actions workflows.",
   proof:
     "Structures evaluation into runs, reports, compare, and gate artifacts to make regression detection reproducible and release decisions auditable.",
   metrics: [
@@ -492,13 +492,13 @@ const jailBreakDefense: Project = {
   label: "AI Safety",
   name: "JailBreakDefense",
   oneLiner:
-    "Intent-preserving jailbreak defense with benchmarks, traceable logs, and measurable safety behavior over time.",
+    "Intent-preserving jailbreak defense with benchmarks, traceable logs and measurable safety behavior over time.",
   problem:
     "Binary refusals break UX and still miss adversarial intent; safety systems need consistent, inspectable handling and evaluation.",
   built:
-    "Built an intent-repair pipeline with evaluation harnesses, benchmark artifacts, and inspectable logs to measure safety behavior over time.",
+    "Built an intent-repair pipeline with evaluation harnesses, benchmark artifacts and inspectable logs to measure safety behavior over time.",
   proof:
-    "Treats safety like reliability: repeatable handling, measurable behavior, and regression-friendly evaluation.",
+    "Treats safety like reliability: repeatable handling, measurable behavior and regression-friendly evaluation.",
   impact: [
     "Routes adversarial prompts through intent repair instead of blunt refusal where possible.",
     "Preserves user intent while enforcing safer outcomes.",
@@ -910,7 +910,7 @@ export default function Home() {
         <section id="experience" className="mb-12 space-y-4">
           <SectionHeader
             title="Experience"
-            subtitle="Hands-on engineering across backend systems, observability, and operational reliability."
+            subtitle="Hands-on engineering across backend systems, observability and operational reliability."
           />
           <div className="space-y-4">
             {experience.map((exp) => (
@@ -950,7 +950,7 @@ export default function Home() {
         <section id="education" className="mb-12 space-y-4">
           <SectionHeader
             title="Education"
-            subtitle="CS foundation across systems, networks, security, and applied ML."
+            subtitle="CS foundation across systems, networks, security and applied ML."
           />
           <div className="space-y-4">
             {education.map((edu) => (
@@ -1019,7 +1019,7 @@ export default function Home() {
         <section id="writing" className="mb-12 space-y-4">
           <SectionHeader
             title="Writing: Failures, Regressions & Deterministic Debugging"
-            subtitle="Postmortems and engineering notes from real builds, incidents, missing signals, and release-safety work."
+            subtitle="Postmortems and engineering notes from real builds, incidents, missing signals and release-safety work."
           />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {articles.map((a) => (
