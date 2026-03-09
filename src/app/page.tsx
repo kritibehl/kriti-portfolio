@@ -799,8 +799,8 @@ export default function Home() {
                   Resilience validation
                 </span>
                 <p className="mt-1 leading-relaxed text-slate-300">
-                  Recovery scorecards, readiness-integrity checks,
-                  observability and release-safety validation under disruption.
+                  Recovery scorecards, readiness-integrity checks, observability
+                  and release-safety validation under disruption.
                 </p>
               </div>
               <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 text-sm text-slate-200">
@@ -834,7 +834,7 @@ export default function Home() {
 
           <div className="pt-6">
             <SectionHeader
-              title="Workflow, Tooling & Backend Projects"
+              title="More Systems & Tooling"
               subtitle="API-first workflow systems, debugging accelerators and supporting performance/systems tooling."
             />
             <div className="mt-4">
@@ -848,7 +848,7 @@ export default function Home() {
 
           <div className="pt-6">
             <SectionHeader
-              title="ML Evaluation & Release Safety"
+              title="Selective ML Infrastructure Work"
               subtitle="Selective ML infrastructure work focused on deterministic evaluation, regression detection and release gating."
             />
             <div className="mt-4">
@@ -1025,7 +1025,7 @@ export default function Home() {
             {articles.map((a) => (
               <article
                 key={a.id}
-                className="flex flex-col gap-2 rounded-2xl border border-slate-800 bg-slate-950/70 p-6 text-base shadow-lg shadow-black/40 hover:border-sky-500/60"
+                className="flex flex-col gap-2 rounded-2xl border border-slate-800 bg-slate-950/70 p-5 text-base shadow-lg shadow-black/40 hover:border-sky-500/60"
               >
                 <h3 className="text-[1.05rem] font-semibold text-slate-50">
                   {a.title}
@@ -1310,65 +1310,35 @@ function FeaturedCard({
 
 function ProjectCard({ project }: { project: Project }) {
   return (
-    <article className="group flex flex-col gap-4 rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/70 via-slate-950 to-slate-950/95 p-7 md:p-8 text-base shadow-lg shadow-black/40 transition hover:border-sky-500/60 hover:shadow-xl hover:shadow-black/60">
+    <article className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/70 via-slate-950 to-slate-950/95 p-6 md:p-7 text-base shadow-lg shadow-black/40 transition hover:-translate-y-0.5 hover:border-sky-500/60 hover:shadow-xl hover:shadow-black/60">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-400/40 to-transparent" />
+
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="text-[0.78rem] uppercase tracking-[0.24em] text-slate-400">
+        <div className="text-[0.76rem] uppercase tracking-[0.22em] text-slate-400">
           {project.label}
         </div>
         <div className="flex flex-wrap gap-1">
           {project.tags.slice(0, 2).map((t) => (
             <span
               key={t}
-              className="rounded-full border border-slate-700 bg-slate-950/50 px-2 py-1 text-[0.7rem] text-slate-300"
+              className="rounded-full border border-slate-700 bg-slate-950/50 px-2 py-1 text-[0.68rem] text-slate-300"
             >
               {t}
             </span>
           ))}
         </div>
       </div>
-      <h3 className="text-xl font-semibold text-slate-50">{project.name}</h3>
-      <p className="text-lg leading-relaxed text-slate-100">
+
+      <h3 className="mt-3 text-xl font-semibold text-slate-50">
+        {project.name}
+      </h3>
+      <p className="mt-2 text-[1rem] leading-relaxed text-slate-200">
         {project.oneLiner}
       </p>
 
-      {(project.problem || project.built || project.proof) && (
-        <div className="grid grid-cols-1 gap-2">
-          {project.problem ? (
-            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
-              <div className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                Problem
-              </div>
-              <div className="mt-1 text-base leading-relaxed text-slate-200">
-                {project.problem}
-              </div>
-            </div>
-          ) : null}
-          {project.built ? (
-            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
-              <div className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                Built
-              </div>
-              <div className="mt-1 text-base leading-relaxed text-slate-200">
-                {project.built}
-              </div>
-            </div>
-          ) : null}
-          {project.proof ? (
-            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
-              <div className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                Proof
-              </div>
-              <div className="mt-1 text-base leading-relaxed text-slate-200">
-                {project.proof}
-              </div>
-            </div>
-          ) : null}
-        </div>
-      )}
-
       {project.metrics?.length ? (
-        <div className="flex flex-wrap gap-2">
-          {project.metrics.map((metric) => (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {project.metrics.slice(0, 4).map((metric) => (
             <span
               key={metric}
               className="rounded-full border border-slate-700 bg-slate-950/70 px-3 py-1 text-xs text-slate-200"
@@ -1379,8 +1349,8 @@ function ProjectCard({ project }: { project: Project }) {
         </div>
       ) : null}
 
-      <ul className="space-y-2 text-base leading-relaxed text-slate-300">
-        {project.impact.slice(0, 4).map((line) => (
+      <ul className="mt-4 space-y-2 text-sm leading-relaxed text-slate-300">
+        {project.impact.slice(0, 2).map((line) => (
           <li key={line} className="pl-3">
             <span className="mr-1 text-slate-500">•</span>
             {line}
@@ -1388,8 +1358,8 @@ function ProjectCard({ project }: { project: Project }) {
         ))}
       </ul>
 
-      <div className="flex flex-wrap gap-2">
-        {project.stack.slice(0, 10).map((s) => (
+      <div className="mt-4 flex flex-wrap gap-2">
+        {project.stack.slice(0, 5).map((s) => (
           <span
             key={s}
             className="rounded-full border border-slate-700 bg-slate-950/70 px-3 py-1 text-xs text-slate-300"
@@ -1399,7 +1369,7 @@ function ProjectCard({ project }: { project: Project }) {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         {project.links.map((link) => (
           <ExternalLink
             key={link.href + link.label}
@@ -1433,14 +1403,21 @@ function SmartGrid({
 
   if (count === 3) {
     return (
-      <div className={classNames("grid grid-cols-1 gap-6 md:grid-cols-3", className)}>
+      <div
+        className={classNames(
+          "grid grid-cols-1 gap-6 md:grid-cols-3",
+          className,
+        )}
+      >
         {children}
       </div>
     );
   }
 
   return (
-    <div className={classNames("grid grid-cols-1 gap-6 md:grid-cols-2", className)}>
+    <div
+      className={classNames("grid grid-cols-1 gap-6 md:grid-cols-2", className)}
+    >
       {children}
     </div>
   );
