@@ -552,44 +552,46 @@ const speechIntentEval: Project = {
 const workflowProjects: Project[] = [resuMate, chromeCopilot, accelSim];
 const mlProjects: Project[] = [fairEval, jailBreakDefense, speechIntentEval];
 
+
 const openSource: OpenSourceContribution[] = [
   {
     id: "temporal-goroutine-leak",
     project: "Temporal Go SDK",
-    title: "Fixed goroutine leak in child-workflow test paths",
+    title: "Fixed child-workflow goroutine leak in test environment",
     summary:
-      "Identified child workflow test paths blocking on an unclosed doneChannel and enforced idempotent closure with sync.Once across exit paths.",
+      "Fixed a goroutine leak caused by child workflows blocking on an unclosed doneChannel by enforcing idempotent closure with sync.Once.",
     impact:
-      "Converted a flaky test-harness resource leak into a regression-tested fix aligned with real workflow cleanup semantics.",
+      "Added regression tests and merged the fix.",
   },
   {
     id: "azure-retry-errors",
     project: "Azure Go SDK (azcore)",
-    title: "Improved retry-path transport error visibility",
+    title: "Improved retry-path transport error propagation",
     summary:
-      "Surfaced realClose() transport errors and composed them with request failures using errors.Join to improve diagnosability in retry flows.",
+      "Surfaced realClose() transport failures and composed them with request errors using errors.Join to improve retry-path diagnosability.",
     impact:
-      "Made retry behavior easier to debug by preserving the transport-layer signal rather than masking it behind higher-level request failures.",
+      "PR under review.",
   },
   {
     id: "temporal-context-propagation",
     project: "Temporal Go SDK",
     title: "Applied workflow context propagators in mock execution",
     summary:
-      "Updated mock workflow execution paths so OnWorkflow matchers observe propagated headers consistent with real workflow execution.",
+      "Updated mock execution so OnWorkflow matchers observe headers consistent with real workflow execution.",
     impact:
-      "Closed the gap between test-path behavior and real runtime semantics, improving correctness for workflow-context-dependent tests.",
+      "PR under review.",
   },
   {
     id: "azure-w3c-trace-context",
     project: "Azure Go SDK (azcore)",
     title: "Implemented W3C Trace Context propagation",
     summary:
-      "Implemented traceparent/tracestate propagation in the HTTP tracing pipeline using OpenTelemetry's W3C propagator, enabling end-to-end distributed trace correlation for Azure services. Added unit tests validating header injection.",
+      "Implemented traceparent/tracestate propagation in the HTTP tracing pipeline using OpenTelemetry propagators and added unit tests validating header injection.",
     impact:
-      "PR under review, CI passing.",
+      "PR under review.",
   },
 ];
+
 
 const articles: Article[] = [
   {
