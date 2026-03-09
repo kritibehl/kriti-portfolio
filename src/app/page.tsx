@@ -1,21 +1,6 @@
-// src/app/page.tsx
 "use client";
 
-/**
- * FAANG-coded portfolio page (email-first, proof-first, readable, no dead-space grids).
- *
- * Included changes:
- * ✅ Removed VoiceVisionReasoner (Option A)
- * ✅ Larger readable fonts (text-base/text-lg + leading-relaxed)
- * ✅ Removed “30-second proof” label (replaced with capability anchors)
- * ✅ Removed Skills subtitle (“Kept tight and relevant...”)
- * ✅ Fixed empty space next to single-card sections (SmartGrid: 1 card => centered, 2+ => grid)
- * ✅ Contact microcopy: “Feel free to reach out — email works best.”
- */
-
-import React, { useEffect, useMemo, useState } from "react";
-
-/* ----------------------------- Types ----------------------------- */
+import React, { useEffect, useState } from "react";
 
 type LinkItem = { href: string; label: string };
 
@@ -24,16 +9,14 @@ type Project = {
   label: string;
   name: string;
   oneLiner: string;
-
   problem?: string;
   built?: string;
   proof?: string;
-
+  metrics?: string[];
   impact: string[];
   stack: string[];
   links: LinkItem[];
   tags: string[];
-  featured?: boolean;
 };
 
 type Article = {
@@ -62,7 +45,18 @@ type Education = {
   details: string[];
 };
 
-/* ----------------------------- Config ----------------------------- */
+type OpenSourceContribution = {
+  id: string;
+  project: string;
+  title: string;
+  summary: string;
+  impact: string;
+};
+
+type ProofStat = {
+  label: string;
+  value: string;
+};
 
 const CONTACT = {
   name: "Kriti Behl",
@@ -73,84 +67,68 @@ const CONTACT = {
   medium: "https://medium.com/@kriti0608",
 };
 
-const FILTERS = [
-  "Featured",
-  "Distributed Systems",
-  "Reliability",
-  "Execution",
-  "GenAI Evaluation",
-  "AI Safety",
-  "Tooling",
-] as const;
-
-/* ----------------------------- Data: Experience ----------------------------- */
+const proofStats: ProofStat[] = [
+  { label: "Faultline", value: "500 race reproductions · 0 duplicate commits" },
+  { label: "KubePulse", value: "8s recovery · resilience score 86/100" },
+  { label: "AutoOps", value: "11 failure families · 11 APIs · 14 tests" },
+  { label: "DetTrace", value: "First divergence isolated at event index 5" },
+];
 
 const experience: Experience[] = [
   {
-    id: "thales-devsecops-elite",
+    id: "thales",
     company: "Thales Group",
     role: "DevSecOps Intern",
     period: "Jun 2025 – Aug 2025",
     location: "Plantation, FL, USA",
     achievements: [
-      "Improved correctness and trust in operational metrics by making lifecycle data crash-safe, regression-aware and debuggable.",
-      "Built crash-safe lifecycle state machines to convert raw PostgreSQL event logs into KPI-grade efficiency and utilization metrics, replacing brittle manual analysis.",
-      "Designed out-of-order and missing-event–tolerant aggregation logic, enabling reliable regression detection across releases despite imperfect data.",
-      "Shipped Chart.js dashboards with drill-down views used by engineers to identify regressions and triage issues faster.",
-      "Focused on system correctness under imperfect data, not just happy-path dashboards.",
+      "Designed and implemented a backend resource utilization engine that computes time-based efficiency from state transition logs in PostgreSQL.",
+      "Built deterministic state-machine logic to derive operational resource state from low-level boolean flags, eliminating inconsistent frontend status computation.",
+      "Implemented delta-based timestamp evaluation over ordered event logs to calculate % time in-use across configurable time windows and resource groups.",
+      "Exposed infrastructure metrics via REST endpoints and integrated group-aware observability dashboards for monitoring, capacity analysis, and load imbalance detection.",
     ],
   },
-
   {
-    id: "uf-ga-elite",
+    id: "uf",
     company: "University of Florida",
     role: "Graduate Assistant",
     period: "Dec 2024 – Dec 2025",
     location: "Gainesville, FL, USA",
     achievements: [
-      "Maintained reliability in high-churn, constraint-driven operations by reducing coordination failure and execution drift.",
-      "Owned weekly operational workflows under frequent last-minute changes, maintaining reliable execution despite shifting constraints.",
+      "Owned weekly operational workflows under frequent last-minute changes while maintaining reliable execution despite shifting constraints.",
       "Identified failure points in handoffs and tracking, then standardized recurring workflows and artifacts to reduce missed actions and reporting gaps.",
-      "Improved week-over-week execution reliability by turning ad-hoc coordination into repeatable, debuggable processes.",
+      "Improved execution reliability by turning ad-hoc coordination into repeatable, debuggable processes.",
     ],
   },
-
   {
-    id: "elixir-swe-elite",
+    id: "elixir",
     company: "Elixir Web Solutions",
     role: "Software Development Intern",
     period: "May 2024 – Aug 2024",
     location: "New Delhi, India",
     achievements: [
-      "Improved dashboard reliability and perceived performance by hardening behavior under partial failures.",
       "Built SEO analytics dashboards using Node.js/Express and REST APIs for client reporting.",
       "Reduced perceived latency by optimizing rendering paths and eliminating redundant DOM work.",
       "Added defensive error handling and fallback states to keep dashboards usable during partial API failures.",
     ],
   },
-
   {
-    id: "c1-swe-elite",
+    id: "c1",
     company: "C1 India Pvt Ltd",
     role: "Software Engineering Intern",
     period: "Jun 2023 – Aug 2023",
     location: "Gurugram, India",
     achievements: [
-      "Increased backend robustness by validating failure and recovery assumptions early.",
       "Designed Java backend modules supporting procurement workflows and enterprise integrations.",
       "Simulated fault-tolerance and log-recovery scenarios to validate resilience assumptions before production exposure.",
       "Implemented defensive input validation and edge-case handling to reduce production risk and instability.",
-
     ],
   },
 ];
 
-
-/* ----------------------------- Data: Education ----------------------------- */
-
 const education: Education[] = [
   {
-    id: "uf-mscs",
+    id: "uf-ms",
     school: "University of Florida",
     degree: "M.S. Computer & Information Science & Engineering",
     period: "Aug 2024 – Dec 2025",
@@ -161,7 +139,7 @@ const education: Education[] = [
     ],
   },
   {
-    id: "jiit-btech",
+    id: "jiit",
     school: "Jaypee Institute of Information Technology",
     degree: "B.Tech Computer Science & Engineering (Honors)",
     period: "Sep 2020 – May 2024",
@@ -173,15 +151,16 @@ const education: Education[] = [
   },
 ];
 
-/* ----------------------------- Data: Live Demos ----------------------------- */
-
 const demoCards = [
   {
-    kicker: "Production ML System",
+    kicker: "ML Evaluation",
     title: "FairEval Suite",
-    desc: "Deterministic GenAI evaluation with CI-friendly regression detection and inspectable metrics.",
+    desc: "Deterministic GenAI evaluation with CI-friendly regression detection and inspectable release-gate artifacts.",
     links: [
-      { href: "https://huggingface.co/spaces/kriti0608/FairEval-Suite", label: "Live demo" },
+      {
+        href: "https://huggingface.co/spaces/kriti0608/FairEval-Suite",
+        label: "Live demo",
+      },
       { href: "https://github.com/kritibehl/FairEval-Suite", label: "GitHub" },
       { href: "https://doi.org/10.5281/zenodo.17625268", label: "Zenodo" },
     ],
@@ -189,354 +168,451 @@ const demoCards = [
   {
     kicker: "Safety Middleware",
     title: "JailBreakDefense",
-    desc: "Intent-preserving jailbreak defense with benchmarks and traceable logs over time.",
+    desc: "Intent-preserving jailbreak defense with benchmarks, traceable logs, and measurable safety behavior over time.",
     links: [
-      { href: "https://huggingface.co/spaces/kriti0608/JailBreakDefense", label: "Live demo" },
-      { href: "https://github.com/kritibehl/JailBreakDefense", label: "GitHub" },
+      {
+        href: "https://huggingface.co/spaces/kriti0608/JailBreakDefense",
+        label: "Live demo",
+      },
+      {
+        href: "https://github.com/kritibehl/JailBreakDefense",
+        label: "GitHub",
+      },
       { href: "https://doi.org/10.5281/zenodo.17694184", label: "Zenodo" },
     ],
   },
   {
     kicker: "Regression Suite",
     title: "SpeechIntentEval",
-    desc: "High-context intent regression tests (polite, sarcastic, ambiguous) for assistant robustness.",
+    desc: "High-context intent regression tests for indirect, polite, sarcastic, and ambiguous assistant behavior.",
     links: [
-      { href: "https://huggingface.co/spaces/kriti0608/SpeechIntentEval", label: "Live demo" },
-      { href: "https://github.com/kritibehl/SpeechIntentEval", label: "GitHub" },
+      {
+        href: "https://huggingface.co/spaces/kriti0608/SpeechIntentEval",
+        label: "Live demo",
+      },
+      {
+        href: "https://github.com/kritibehl/SpeechIntentEval",
+        label: "GitHub",
+      },
     ],
   },
 ];
 
-/* ----------------------------- Data: Projects ----------------------------- */
-
 const faultline: Project = {
   id: "faultline",
-  featured: true,
   label: "Distributed Systems & Execution Correctness",
   name: "Faultline — Distributed Job Processing System",
-
   oneLiner:
-    "Crash-safe distributed job execution system that remains correct under worker crashes, retries and partial failures.",
-
+    "Crash-safe distributed job execution system with lease-based ownership, fencing tokens, and deterministic validation under reclaim races.",
   problem:
-    "Retries and mid-execution crashes commonly cause duplicate execution, inconsistent state and unclear recovery paths in distributed job systems.",
-
+    "Retries and mid-execution crashes in distributed job systems can cause duplicate execution, stale writes, and unclear recovery behavior.",
   built:
-    "Designed a lease-based distributed state machine with database-enforced idempotency, bounded retries with backoff and crash-safe reconciliation.",
-
+    "Built a PostgreSQL-backed execution platform with row-level locking, atomic lease acquisition, fencing tokens, crash reconciliation, lease reaping, bounded exponential backoff, and database-enforced idempotency.",
   proof:
-    "Designed to make failure states explicit and recoverable, reducing incident ambiguity and manual intervention during outages.",
-
-  impact: [
-    "Guarantees correctness across worker crashes, race conditions and retry amplification.",
-    "Prevents duplicate side effects through database-enforced idempotency.",
-    "Deterministically converges state instead of masking errors during recovery.",
-    "Prometheus dashboards surface retry storms, partial failures and recovery behavior.",
+    "Validated across 500 deterministic race reproductions with 0 duplicate commits and 500 stale-write rejections confirmed.",
+  metrics: [
+    "500 deterministic race runs",
+    "0 duplicate commits",
+    "500 stale-write rejections",
+    "16 drill scenarios · 29 assertions",
   ],
-
+  impact: [
+    "Guarantees correctness across worker crashes, reclaim races, and retry amplification.",
+    "Prevents duplicate side effects through fencing-token validation and UNIQUE(job_id, fencing_token) constraints.",
+    "Makes failure states explicit and recoverable via reconciliation and lease reaping.",
+    "Exports Prometheus signals for retries, stale-write prevention, and reconciliation behavior.",
+  ],
   stack: [
-    "Go",
+    "Python",
     "PostgreSQL",
-    "Distributed state machines",
+    "Fencing tokens",
     "Idempotency",
     "Retries/backoff",
     "Prometheus",
   ],
-
   links: [{ href: "https://github.com/kritibehl/faultline", label: "GitHub" }],
-  tags: ["Featured", "Distributed Systems", "Execution", "Reliability"],
+  tags: ["Systems", "Reliability", "Execution"],
 };
 
-const faireval: Project = {
-  id: "faireval",
-  featured: true,
-  label: "GenAI Evaluation & Release Safety ",
-  name: "FairEval Suite — Deterministic GenAI Evaluation",
-
+const kubePulse: Project = {
+  id: "kubepulse",
+  label: "Resilience Validation",
+  name: "KubePulse — Kubernetes Resilience Validation",
   oneLiner:
-    "Deterministic GenAI evaluation framework designed to catch silent regressions before models ship.",
-
+    "Kubernetes resilience validation framework that runs controlled disruption scenarios and measures whether services truly recover.",
   problem:
-    "GenAI behavior drifts silently across versions; most evaluations are non-repeatable and not CI-integrated.",
-
+    "Services often appear healthy until CPU, latency, dependency, or probe failures expose blind spots in recovery behavior and health signals.",
   built:
-    "Deterministic scoring, CI-integrated regression gates, and versioned evaluation artifacts.",
-
+    "Built a FastAPI control plane, declarative YAML scenarios, real metrics probing, baseline-vs-observed comparison, readiness false-positive detection, and automated resilience scorecards.",
   proof:
-    "Treats GenAI evaluation as a release-blocking quality gate, not an offline research artifact.",
-
-  impact: [
-    "Catches silent regressions before release.",
-    "Supports safe model iteration under frequent version churn.",
-    "Provides auditability via versioned artifacts.",
+    "Validated a CPU-stress scenario with 8s recovery, ~210 ms p95 latency, ~2% error rate, and an overall resilience score of 86/100.",
+  metrics: [
+    "8s recovery window",
+    "~210 ms p95 latency",
+    "~2% error rate",
+    "Resilience score 86/100",
   ],
-
+  impact: [
+    "Detects cases where Kubernetes probes report healthy while service behavior remains degraded.",
+    "Turns resilience checks into automated scorecards and report artifacts instead of one-off chaos runs.",
+    "Supports CI-driven resilience validation with Prometheus instrumentation and Markdown exports.",
+    "Makes recovery behavior measurable across repeated disruption scenarios.",
+  ],
   stack: [
     "Python",
     "FastAPI",
+    "Kubernetes",
+    "Prometheus",
+    "Grafana",
+    "GitHub Actions",
+  ],
+  links: [{ href: "https://github.com/kritibehl/KubePulse", label: "GitHub" }],
+  tags: ["Systems", "Reliability"],
+};
+
+const detTrace: Project = {
+  id: "dettrace",
+  label: "Deterministic Debugging",
+  name: "DetTrace — Deterministic Replay & Divergence Analysis",
+  oneLiner:
+    "C++ replay and divergence-analysis tool that turns flaky concurrent failures into reproducible root-cause artifacts.",
+  problem:
+    "Flaky concurrent failures are difficult to root-cause because downstream symptoms hide the first ordering mistake.",
+  built:
+    "Built expected-trace capture, guarded replay, event-level comparison, divergence reporting, and a flaky-case walkthrough for concurrent ordering failures.",
+  proof:
+    "Deterministically isolated the first mismatch at event index 5 in a flaky ordering case while preserving 4 debugging artifacts per run.",
+  metrics: [
+    "First divergence at event index 5",
+    "4 generated artifacts per run",
+    "20-event expected trace",
+    "Passing integration coverage",
+  ],
+  impact: [
+    "Turns nondeterministic failures into reproducible debugging artifacts.",
+    "Makes the first divergent event explicit instead of forcing downstream symptom chasing.",
+    "Preserves trace artifacts even when replay aborts on mismatch.",
+    "Provides a proof-first systems debugging story with generated reports and walkthroughs.",
+  ],
+  stack: [
+    "C++17",
+    "Execution tracing",
+    "Guarded replay",
+    "Divergence reports",
+    "Concurrency debugging",
+  ],
+  links: [{ href: "https://github.com/kritibehl/dettrace", label: "GitHub" }],
+  tags: ["Systems", "Execution"],
+};
+
+const autoOps: Project = {
+  id: "autoops",
+  label: "Reliability Analytics & Release Safety",
+  name: "AutoOps-Insight — CI / Infrastructure Failure Analytics",
+  oneLiner:
+    "Reliability analytics platform that converts raw CI and infrastructure logs into structured incident records, recurrence tracking, and release-risk summaries.",
+  problem:
+    "CI/CD pipelines generate volume, not insight; recurring regressions and release blockers hide behind per-run log noise.",
+  built:
+    "Built a FastAPI + CLI + dashboard + CI system with rule-based plus ML-backed failure classification, stable signature fingerprinting, SQLite history, recurrence tracking, and Markdown/JSON reporting.",
+  proof:
+    "Classifies failures across 11 families and ships with 11 API endpoints, 5 Prometheus counters, 14 passing tests, and recurrence-aware release-risk reporting.",
+  metrics: [
+    "11 failure families",
+    "11 FastAPI endpoints",
+    "5 Prometheus counters",
+    "14 passing tests",
+  ],
+  impact: [
+    "Turns noisy logs into structured incident artifacts with severity, ownership hints, remediation steps, and stable signatures.",
+    "Detects recurring failures and aggregates release risk across API, CLI, dashboard, and CI workflows.",
+    "Exports artifacts suitable for headless CI analysis and human-readable incident review.",
+    "Stays explainable through deterministic rule layers and lightweight anomaly heuristics.",
+  ],
+  stack: [
+    "Python",
+    "FastAPI",
+    "SQLite",
+    "React",
+    "Prometheus",
+    "GitHub Actions",
+  ],
+  links: [
+    { href: "https://github.com/kritibehl/autoops-insight", label: "GitHub" },
+  ],
+  tags: ["Reliability", "Tooling"],
+};
+
+const resuMate: Project = {
+  id: "resumate",
+  label: "Workflow Engine & Backend Tooling",
+  name: "ResuMate — API-First Document Analysis Workflow Engine",
+  oneLiner:
+    "FastAPI workflow engine for structured document analysis, job history, batching, diffing, exports, and repeatable automation.",
+  problem:
+    "Repeated document-analysis workflows become slow and inconsistent without stable contracts, history, diffing, and exportable outputs.",
+  built:
+    "Refactored a prototype into a modular backend with jobs, versions, history, batches, diffing, exports, fingerprinting, and dashboard metrics.",
+  proof:
+    "Implements 12 FastAPI endpoints across 34 Python source files with 10 test files, 5 passing smoke tests, 2 export modes, and 7 workflow capabilities.",
+  metrics: [
+    "12 API endpoints",
+    "34 Python files",
+    "10 test files",
+    "5 passing smoke tests",
+  ],
+  impact: [
+    "Treats document analysis as a repeatable workflow engine instead of a one-shot text generator.",
+    "Supports batch jobs, version/history inspection, and run-to-run diffing for iterative workflows.",
+    "Exports JSON and Markdown artifacts suitable for automation and review.",
+    "Surfaces recent jobs, summary metrics, and repeated-input stability through dashboard endpoints.",
+  ],
+  stack: ["Python", "FastAPI", "Pydantic", "Streamlit", "Workflow APIs"],
+  links: [{ href: "https://github.com/kritibehl/ResuMate", label: "GitHub" }],
+  tags: ["Tooling", "Backend"],
+};
+
+const chromeCopilot: Project = {
+  id: "chromecopilot",
+  label: "Developer Productivity & Debugging Workflows",
+  name: "Chrome Copilot — Workflow-First Browser Debugging Assistant",
+  oneLiner:
+    "Privacy-aware browser debugging assistant with structured parsing, signature clustering, local fallback analysis, and issue-summary export.",
+  problem:
+    "Debugging slows down when logs are noisy, repeated failures are rediscovered from scratch, and context is scattered across tools.",
+  built:
+    "Built browser-side context capture, deterministic parsing and classification, normalized signature clustering, cache-aware repeated triage, local-only mode, and Markdown issue-summary export.",
+  proof:
+    "Validated across 5 representative browser/frontend error categories and 1,000 benchmarked runs with 100% report completeness, 80% noisy-variant cluster stability, and workflow reduction from 8 manual steps to 3.",
+  metrics: [
+    "1,000 benchmarked runs",
+    "100% report completeness",
+    "80% cluster stability",
+    "8 steps → 3 steps",
+  ],
+  impact: [
+    "Transforms browser-side logs into structured debugging reports with probable cause and next-step guidance.",
+    "Caches repeated analyses to accelerate recurring triage workflows.",
+    "Works in a deterministic local-only mode rather than depending entirely on model-backed analysis.",
+    "Produces handoff-ready Markdown issue summaries for debugging and QA workflows.",
+  ],
+  stack: [
+    "JavaScript",
+    "Chrome APIs",
+    "Structured parsing",
+    "Caching",
+    "Local fallback analysis",
+  ],
+  links: [
+    { href: "https://github.com/kritibehl/chrome-copilot", label: "GitHub" },
+  ],
+  tags: ["Tooling"],
+};
+
+const accelSim: Project = {
+  id: "accelsim",
+  label: "Systems Modeling & Performance Reasoning",
+  name: "AccelSim-Lite — Deterministic Compute-Pipeline Simulator",
+  oneLiner:
+    "Deterministic C++ compute-pipeline simulator for workload latency, throughput, queue pressure, and bottleneck analysis.",
+  problem:
+    "Performance-sensitive execution paths are difficult to reason about without deterministic workload models and structured bottleneck metrics.",
+  built:
+    "Built a 7-stage pipeline simulator with 3 operation classes, configurable compute/memory limits, dependency-aware scheduling, and structured report export.",
+  proof:
+    "Ships with 4 workload classes, 5 stall categories, 6 report artifacts, and CLI-driven run/compare/benchmark workflows for repeatable performance analysis.",
+  metrics: [
+    "7-stage pipeline",
+    "3 op types",
+    "4 resource knobs",
+    "5 stall categories",
+  ],
+  impact: [
+    "Models workload latency, throughput, queue occupancy, utilization, and dominant bottlenecks under constrained resources.",
+    "Supports compute-heavy, memory-heavy, queue-pressure, and mixed workload comparison.",
+    "Exports text, JSON, and CSV artifacts for repeatable analysis and plotting.",
+    "Provides architecture/performance signal without overstating hardware fidelity.",
+  ],
+  stack: [
+    "C++",
+    "Pipeline modeling",
+    "Performance metrics",
+    "CLI benchmarking",
+    "CSV/JSON reporting",
+  ],
+  links: [
+    { href: "https://github.com/kritibehl/accelsim-lite", label: "GitHub" },
+  ],
+  tags: ["Execution"],
+};
+
+const fairEval: Project = {
+  id: "faireval",
+  label: "ML Evaluation & Release Safety",
+  name: "FairEval Suite — CI-Integrated Evaluation & Regression Gating",
+  oneLiner:
+    "Deterministic evaluation framework that compares model variants, detects silent regressions, and produces versioned release-gate artifacts.",
+  problem:
+    "Model behavior drifts silently across prompt, model, and retrieval changes, but most evaluations are not CI-integrated or release-gated.",
+  built:
+    "Built dataset-driven evaluation runs, baseline-vs-candidate comparison, threshold-based gates, versioned artifacts, and CLI + GitHub Actions workflows.",
+  proof:
+    "Structures evaluation into runs, reports, compare, and gate artifacts to make regression detection reproducible and release decisions auditable.",
+  metrics: [
+    "4 artifact stages",
+    "5+ evaluation cases",
+    "7+ automated tests",
+    "CI-integrated gating",
+  ],
+  impact: [
+    "Treats ML evaluation as release-blocking quality infrastructure instead of a one-off script.",
+    "Detects score and pass-rate regressions before degraded variants ship.",
+    "Preserves versioned artifacts for auditability and debugging.",
+    "Supports interactive demo-based inspection of gate outcomes.",
+  ],
+  stack: [
+    "Python",
     "CI/CD",
     "Evaluation pipelines",
     "Versioned artifacts",
+    "Hugging Face Spaces",
   ],
-
   links: [
-    { href: "https://huggingface.co/spaces/kriti0608/FairEval-Suite", label: "Live demo" },
+    {
+      href: "https://huggingface.co/spaces/kriti0608/FairEval-Suite",
+      label: "Live demo",
+    },
     { href: "https://github.com/kritibehl/FairEval-Suite", label: "GitHub" },
   ],
-
-  tags: ["Featured", "GenAI Evaluation", "Reliability"],
+  tags: ["ML", "Reliability"],
 };
 
-const reliabilityInfra: Project[] = [
- {
-  id: "autoops",
-  label: "Reliability & Release Safety",
-  name: "AutoOps-Insight — CI/CD Failure Analytics",
-
+const jailBreakDefense: Project = {
+  id: "jailbreakdefense",
+  label: "AI Safety",
+  name: "JailBreakDefense",
   oneLiner:
-    "Turns noisy CI/CD logs into actionable reliability signals by surfacing recurring failure modes.",
-
+    "Intent-preserving jailbreak defense with benchmarks, traceable logs, and measurable safety behavior over time.",
   problem:
-    "CI/CD pipelines generate volume, not insight—systemic failures hide behind per-run noise.",
-
+    "Binary refusals break UX and still miss adversarial intent; safety systems need consistent, inspectable handling and evaluation.",
   built:
-    "Failure classification pipeline over CI logs with dashboards for flaky tests, slow stages, and repeat offenders.",
-
+    "Built an intent-repair pipeline with evaluation harnesses, benchmark artifacts, and inspectable logs to measure safety behavior over time.",
   proof:
-    "Shifts CI from per-run debugging to trend-based reliability analysis.",
-
+    "Treats safety like reliability: repeatable handling, measurable behavior, and regression-friendly evaluation.",
   impact: [
-    "Reduces manual triage by surfacing systemic reliability issues.",
-    "Highlights flaky tests and chronic failure points.",
-    "Designed to reduce mean-time-to-diagnosis.",
+    "Routes adversarial prompts through intent repair instead of blunt refusal where possible.",
+    "Preserves user intent while enforcing safer outcomes.",
+    "Includes artifacts to track how safety behavior changes over time.",
   ],
-
-  stack: [
-    "Python",
-    "FastAPI",
-    "CI/CD APIs",
-    "Prometheus",
-    "Grafana",
+  stack: ["Python", "Transformers", "Intent repair", "Evaluation harness"],
+  links: [
+    {
+      href: "https://huggingface.co/spaces/kriti0608/JailBreakDefense",
+      label: "Live demo",
+    },
+    { href: "https://github.com/kritibehl/JailBreakDefense", label: "GitHub" },
   ],
+  tags: ["ML", "AI Safety"],
+};
 
-  links: [{ href: "https://github.com/kritibehl/autoops-insight", label: "GitHub" }],
-  tags: ["Reliability", "Tooling"],
-}
-,
-  {
-    id: "kubepulse",
-    label: "Chaos Engineering",
-    name: "KubePulse",
-    oneLiner: "Chaos testing framework to inject controlled failures and validate resilience before production incidents.",
-    problem:
-      "Systems look healthy until infrastructure fails; observability gaps and brittle recovery paths surface too late.",
-    built: "Controlled experiments for pod crashes, latency, CPU pressure and network disruption tied to resilience checks.",
-    proof: "Failure injection makes hidden failure modes measurable and repeatable.",
-    impact: [
-      "Injects controlled outages and resource pressure to validate behavior under partial failures.",
-      "Surfaces brittle dependencies and missing signals before they become incidents.",
-      "Supports reliability test runs aligned with release readiness workflows.",
-      "Pairs experiments with metrics/alerts to validate detection, not just recovery.",
-    ],
-    stack: ["Python", "Kubernetes", "Docker", "Prometheus", "Grafana"],
-    links: [{ href: "https://github.com/kritibehl/kubepulse", label: "GitHub" }],
-    tags: ["Reliability"],
-  },
-];
-
-const executionDeterminism: Project[] = [
-  {
-  id: "dettrace",
-  label: "Execution Correctness & Verification",
-  name: "DetTrace — Deterministic Replay & Invariant Verification",
-
+const speechIntentEval: Project = {
+  id: "speechintenteval",
+  label: "Regression Dataset & Robustness",
+  name: "SpeechIntentEval",
   oneLiner:
-    "Deterministic replay engine that turns flaky concurrency bugs into reproducible, fail-fast failures.",
-
+    "Regression suite for subtle, high-context intent in assistant systems across indirect, polite, sarcastic, and ambiguous phrasing.",
   problem:
-    "Flaky concurrency and timing-dependent failures are difficult to reproduce and diagnose.",
-
+    "Assistants regress on nuanced intent, and standard test sets miss realistic edge cases that fail silently in production.",
   built:
-    "Stable execution trace recording, deterministic replay, and runtime enforcement of ordering and state invariants.",
-
+    "Built a curated evaluation set and regression runner for comparing model behavior on the same high-context intent cases over time.",
   proof:
-    "Fail-fast diagnostics identify the first divergent event, not downstream symptoms.",
-
+    "Targets realistic edge cases that are easy to miss in standard test suites but matter in deployed assistants.",
   impact: [
-    "Eliminates non-reproducible failures by making execution deterministic by design.",
-    "Enforces ordering and state invariants at runtime.",
-    "Shortens debug cycles for flaky tests and concurrency issues.",
-    "Designed for scheduling races and regressions that logging cannot isolate.",
+    "Makes nuanced intent regressions testable and repeatable.",
+    "Supports apples-to-apples comparisons across model versions on the same intent set.",
+    "Extends evaluation coverage beyond obvious benchmark prompts.",
   ],
-
-  stack: [
-    "C++17",
-    "Deterministic replay",
-    "Invariant enforcement",
-    "Execution tracing",
-    "Concurrency debugging",
+  stack: ["Python", "Dataset design", "Evaluation scripts", "GitHub Actions"],
+  links: [
+    {
+      href: "https://huggingface.co/spaces/kriti0608/SpeechIntentEval",
+      label: "Live demo",
+    },
+    { href: "https://github.com/kritibehl/SpeechIntentEval", label: "GitHub" },
   ],
+  tags: ["ML"],
+};
 
-  links: [{ href: "https://github.com/kritibehl/dettrace", label: "GitHub" }],
-  tags: ["Execution", "Reliability"],
-}
-,
+const workflowProjects: Project[] = [resuMate, chromeCopilot, accelSim];
+const mlProjects: Project[] = [fairEval, jailBreakDefense, speechIntentEval];
+
+const openSource: OpenSourceContribution[] = [
   {
-  id: "accelsim",
-  label: "Systems Modeling",
-  name: "AccelSim-Lite — CPU / Accelerator Functional Simulator",
-
-  oneLiner:
-    "Deterministic execution model for reasoning about correctness and performance in CPU and accelerator pipelines.",
-
-  problem:
-    "Low-level execution paths are timing- and ordering-sensitive, making correctness and performance hard to reason about.",
-
-  built:
-    "Deterministic models for compute units, queues, and memory interactions with unit-tested lifecycle transitions.",
-
-  proof:
-    "Enables repeatable correctness analysis for execution paths that are otherwise timing- and ordering-sensitive.",
-
-  impact: [
-    "Models instruction flow, scheduling, and execution latency deterministically.",
-    "Unit tests validate instruction ordering and lifecycle boundaries.",
-    "Supports reasoning about scheduling trade-offs under deterministic assumptions.",
-  ],
-
-  stack: [
-    "C++",
-    "OOP",
-    "CPU pipelines",
-    "Accelerator modeling",
-    "Deterministic simulation",
-  ],
-
-  links: [{ href: "https://github.com/kritibehl/accelsim-lite", label: "GitHub" }],
-  tags: ["Execution"],
-},
-];
-
-/**
- * ✅ Option A applied: VoiceVisionReasoner removed here.
- */
-const genaiSafety: Project[] = [
-  {
-    id: "jailbreakdefense",
-    label: "AI Safety · Security",
-    name: "JailBreakDefense",
-    oneLiner:
-      "Safety middleware that detects jailbreak-style prompts and repairs intent while keeping the assistant usable.",
-    problem: "Binary refusals break UX and still miss adversarial intent; safety needs measurable behavior over time.",
-    built: "Intent-repair pipeline + evaluation harness + inspectable logs/benchmarks for continuous measurement.",
-    proof: "Treats safety like reliability: consistent handling, measurable outcomes, repeatable evaluation.",
-    impact: [
-      "Routes adversarial prompts through intent-repair instead of blunt refusals.",
-      "Preserves user intent by rewriting unsafe requests toward safe alternatives where possible.",
-      "Designed as a lightweight drop-in layer in front of existing LLM APIs.",
-      "Includes benchmarks and artifacts to track safety behavior over time.",
-    ],
-    stack: ["Python", "Transformers", "Intent Repair", "Evaluation Harness", "Redis"],
-    links: [
-      { href: "https://huggingface.co/spaces/kriti0608/JailBreakDefense", label: "Live demo" },
-      { href: "https://github.com/kritibehl/jailbreak-defense", label: "GitHub" },
-    ],
-    tags: ["AI Safety", "GenAI Evaluation"],
+    id: "temporal-goroutine-leak",
+    project: "Temporal Go SDK",
+    title: "Fixed goroutine leak in child-workflow test paths",
+    summary:
+      "Identified child workflow test paths blocking on an unclosed doneChannel and enforced idempotent closure with sync.Once across exit paths.",
+    impact:
+      "Converted a flaky test-harness resource leak into a regression-tested fix aligned with real workflow cleanup semantics.",
   },
   {
-    id: "speechintenteval",
-    label: "Robustness · Dataset",
-    name: "SpeechIntentEval",
-    oneLiner:
-      "Regression suite for subtle, high-context intent (indirect, polite, sarcastic, ambiguous) in assistants.",
-    problem: "Assistants regress on nuanced intent; standard evals often miss these failures.",
-    built: "Curated test set + regression runner for consistent comparisons across models/versions.",
-    proof: "Targets realistic edge cases that cause silent regressions in production assistants.",
-    impact: [
-      "Curates high-context intent cases to probe robustness under real phrasing variation.",
-      "Runs regression tests against new model versions to catch drift early.",
-      "Supports apples-to-apples comparisons across models on the same intent set.",
-      "Designed to expose failure modes easy to miss in standard test suites.",
-    ],
-    stack: ["Python", "Dataset Design", "Evaluation Scripts", "GitHub Actions"],
-    links: [
-      { href: "https://huggingface.co/spaces/kriti0608/SpeechIntentEval", label: "Live demo" },
-      { href: "https://github.com/kritibehl/speech-intent-eval", label: "GitHub" },
-    ],
-    tags: ["GenAI Evaluation"],
+    id: "azure-retry-errors",
+    project: "Azure Go SDK (azcore)",
+    title: "Improved retry-path transport error visibility",
+    summary:
+      "Surfaced realClose() transport errors and composed them with request failures using errors.Join to improve diagnosability in retry flows.",
+    impact:
+      "Made retry behavior easier to debug by preserving the transport-layer signal rather than masking it behind higher-level request failures.",
+  },
+  {
+    id: "temporal-context-propagation",
+    project: "Temporal Go SDK",
+    title: "Applied workflow context propagators in mock execution",
+    summary:
+      "Updated mock workflow execution paths so OnWorkflow matchers observe propagated headers consistent with real workflow execution.",
+    impact:
+      "Closed the gap between test-path behavior and real runtime semantics, improving correctness for workflow-context-dependent tests.",
   },
 ];
-
-const developerTools: Project[] = [
-  {
-    id: "chromecopilot",
-    label: "Developer Productivity",
-    name: "Chrome Copilot",
-    oneLiner: "Privacy-first browser extension to debug logs and stack traces faster (workflow-first, not chat-first).",
-    problem: "Debugging slows down when logs are noisy and context is scattered across tools.",
-    built: "In-browser parsing + suggested fix paths using LLM APIs with caching and rate limiting.",
-    proof: "Designed to minimize data handling: avoid server-side storage by default and keep workflows practical.",
-    impact: [
-      "Parses console logs and exception traces in the browser to reduce context switching.",
-      "Suggests likely causes and fix paths with caching + rate limiting for predictable behavior.",
-      "Privacy-first constraints by design (no default server-side log storage).",
-      "Built for real debugging workflows rather than generic chatbot interactions.",
-    ],
-    stack: ["JavaScript", "Chrome APIs", "LLM APIs", "Caching", "Rate Limiting"],
-    links: [{ href: "https://github.com/kritibehl/chrome-copilot", label: "GitHub" }],
-    tags: ["Tooling"],
-  },
-  {
-    id: "resumate",
-    label: "Applied ML · Backend",
-    name: "ResuMate",
-    oneLiner: "API-first resume-to-job analyzer that turns job requirements into structured, actionable feedback.",
-    problem: "Tailoring resumes is slow without a structured mapping from requirements to evidence.",
-    built: "Backend service comparing resumes vs JDs and returning structured matches/gaps as JSON.",
-    proof: "Designed for iterative workflows with persistence rather than one-off outputs.",
-    impact: [
-      "Extracts requirement matches and gaps to accelerate targeting and iteration.",
-      "Maps missing requirements to suggested bullet rewrites to improve clarity and alignment.",
-      "Exposes a clean FastAPI JSON API suitable for automation and dashboards.",
-      "Built to support repeated iteration with stable, readable outputs.",
-    ],
-    stack: ["Python", "FastAPI", "Docker", "Redis", "LLM APIs"],
-    links: [{ href: "https://github.com/kritibehl/resumate", label: "GitHub" }],
-    tags: ["Tooling"],
-  },
-];
-
-/* ----------------------------- Data: Writing ----------------------------- */
 
 const articles: Article[] = [
   {
-    id: "faireval-human-aligned",
-    title: "FairEval: A Human-Aligned Evaluation Framework for Generative Models",
-    subtitle: "Designing deterministic evaluation signals to catch silent regressions and compare versions reliably.",
-    href: "https://medium.com/@kriti0608/faireval-a-human-aligned-evaluation-framework-for-generative-models-d822bfd5c99d",
-    tags: ["ML Systems", "Evaluation", "Reliability"],
-  },
-  {
     id: "silent-regressions",
     title: "Detecting Silent Regressions in GenAI Systems at Scale",
-    subtitle: "A systems approach to drift: stable metrics, reproducibility and CI gating.",
+    subtitle:
+      "A systems approach to drift: stable metrics, reproducibility, and CI gating.",
     href: "https://medium.com/@kriti0608/detecting-silent-regressions-in-genai-systems-at-scale-039ec03db1e4",
     tags: ["Production", "CI", "Metrics"],
   },
   {
-    id: "observability-incident",
-    title: "I Thought I Built Observability. Then an Incident Proved I Didn’t.",
-    subtitle: "What failed, what signals were missing and how to redesign instrumentation for debuggability.",
-    href: "https://medium.com/@kriti0608/i-thought-i-built-observability-then-an-incident-proved-i-didnt-9b749e0d4ff3",
-    tags: ["Observability", "Incidents", "Systems"],
+    id: "distributed-system-failed",
+    title: "The Day My Distributed System Failed — and Why That Was the Point",
+    subtitle:
+      "Why deterministic failure drills, explicit invariants, and recovery artifacts matter more than happy-path demos.",
+    href: "https://medium.com/@kriti0608",
+    tags: ["Distributed Systems", "Postmortem", "Correctness"],
+  },
+  {
+    id: "intent-repair",
+    title:
+      "Why AI Refusals Feel Like Punishment — and How I Learned to Repair Intent Instead",
+    subtitle:
+      "Treating safety like reliability: measurable behavior, better UX, and inspectable fallback paths.",
+    href: "https://medium.com/@kriti0608",
+    tags: ["AI Safety", "Reliability", "UX"],
   },
 ];
 
-/* ----------------------------- Data: Skills ----------------------------- */
-
 const skills: Record<string, string[]> = {
-  "Core Languages": ["C++", "Go", "Python", "TypeScript/JavaScript", "Java", "SQL"],
-
+  "Core Languages": [
+    "C++",
+    "Go",
+    "Python",
+    "TypeScript/JavaScript",
+    "Java",
+    "SQL",
+  ],
   "Systems & Correctness": [
     "State machines",
     "Idempotency",
@@ -544,14 +620,6 @@ const skills: Record<string, string[]> = {
     "Invariants",
     "Retries/backoff",
   ],
-
-  "Backend Engineering": [
-    "FastAPI",
-    "REST",
-    "Node.js/Express",
-    "API design",
-  ],
-
   "Reliability Engineering": [
     "Failure modes",
     "Chaos testing",
@@ -559,34 +627,27 @@ const skills: Record<string, string[]> = {
     "Release readiness",
     "Debuggability",
   ],
-
   Observability: [
     "Prometheus",
     "Grafana",
     "Metrics design",
     "Structured logging",
   ],
-
-  "Cloud & DevOps": [
+  "Backend & Workflow APIs": [
+    "FastAPI",
+    "REST",
+    "Pydantic",
+    "Node.js/Express",
+    "API design",
+  ],
+  "Cloud & Runtime": [
     "Docker",
     "Kubernetes",
-    "CI/CD",
-    "AWS (basics)",
-  ],
-
-  Datastores: ["PostgreSQL", "MongoDB", "Redis"],
-
-  "Testing & Quality Engineering": [
-    "Unit testing",
-    "Integration testing",
-    "Property-based testing",
-    "Flaky test mitigation",
-    "CI validation",
+    "PostgreSQL",
+    "SQLite",
+    "GitHub Actions",
   ],
 };
-
-
-/* ----------------------------- Helpers ----------------------------- */
 
 function classNames(...xs: Array<string | undefined | false>) {
   return xs.filter(Boolean).join(" ");
@@ -594,44 +655,29 @@ function classNames(...xs: Array<string | undefined | false>) {
 
 function useScrollY(threshold = 420) {
   const [past, setPast] = useState(false);
+
   useEffect(() => {
     const onScroll = () => setPast(window.scrollY > threshold);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+
     return () => window.removeEventListener("scroll", onScroll);
   }, [threshold]);
+
   return past;
 }
 
-/* ----------------------------- Page ----------------------------- */
-
 export default function Home() {
   const showSticky = useScrollY(420);
-  const [activeFilter, setActiveFilter] = useState<(typeof FILTERS)[number]>("Featured");
-
-  const allProjects = useMemo<Project[]>(
-    () => [faultline, faireval, ...reliabilityInfra, ...executionDeterminism, ...genaiSafety, ...developerTools],
-    []
-  );
-
-  const filteredProjects = useMemo(() => {
-    if (activeFilter === "Featured") return [faultline, faireval];
-    if (activeFilter === "Distributed Systems") return allProjects.filter((p) => p.tags.includes("Distributed Systems"));
-    if (activeFilter === "Reliability") return allProjects.filter((p) => p.tags.includes("Reliability"));
-    if (activeFilter === "Execution") return allProjects.filter((p) => p.tags.includes("Execution"));
-    if (activeFilter === "GenAI Evaluation") return allProjects.filter((p) => p.tags.includes("GenAI Evaluation"));
-    if (activeFilter === "AI Safety") return allProjects.filter((p) => p.tags.includes("AI Safety"));
-    if (activeFilter === "Tooling") return allProjects.filter((p) => p.tags.includes("Tooling"));
-    return allProjects;
-  }, [activeFilter, allProjects]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 selection:bg-sky-500/30 selection:text-slate-50">
-      {/* Sticky email CTA */}
       <div
         className={classNames(
           "fixed bottom-4 right-4 z-50 transition-all duration-300",
-          showSticky ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
+          showSticky
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-2 pointer-events-none",
         )}
       >
         <a
@@ -647,23 +693,22 @@ export default function Home() {
       </div>
 
       <div className="mx-auto max-w-6xl px-4 pb-16 pt-8 lg:px-6">
-        {/* Header */}
         <header className="mb-10 flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="text-5xl font-extrabold tracking-tight text-white leading-none">
               {CONTACT.name.toUpperCase()}
             </div>
             <div className="mt-2 text-lg font-medium text-slate-300">
-              Correctness under failure — execution · infrastructure · GenAI systems
+              Backend · Systems · Reliability Engineering
             </div>
           </div>
 
           <nav className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
-            <a href="#proof" className="hover:text-slate-100">
-              Proof
-            </a>
             <a href="#projects" className="hover:text-slate-100">
               Projects
+            </a>
+            <a href="#opensource" className="hover:text-slate-100">
+              Open Source
             </a>
             <a href="#experience" className="hover:text-slate-100">
               Experience
@@ -674,7 +719,6 @@ export default function Home() {
             <a href="#contact" className="hover:text-slate-100">
               Contact
             </a>
-
             <ExternalLink
               href={CONTACT.linkedin}
               className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1 text-sm text-slate-200 hover:border-sky-500/70 hover:text-slate-50"
@@ -690,28 +734,24 @@ export default function Home() {
           </nav>
         </header>
 
-        {/* Hero */}
-        <section className="mb-10">
+        <section className="mb-12">
           <div className="relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900/70 via-slate-950 to-slate-950/90 p-8 text-center shadow-2xl shadow-black/60 md:p-10">
             <div className="pointer-events-none absolute -top-28 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-sky-500/10 blur-3xl" />
-
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-400">
-              CORRECTNESS • RELIABILITY • DETERMINISM
+              BACKEND • SYSTEMS • RELIABILITY
             </p>
-
             <h1 className="mt-4 text-4xl font-bold tracking-tight text-white md:text-5xl">
-              I build systems that stay correct under failure — across execution, infrastructure and AI.
+              I build correctness-first software that stays safe under crashes,
+              races, and silent regressions.
             </h1>
-
-            <p className="mt-6 mx-auto max-w-3xl text-lg text-slate-200 leading-relaxed">
-  I design for <span className="text-sky-300">crashes</span>,{" "}
-  <span className="text-sky-300">race-driven edge cases</span> and{" "}
-  <span className="text-sky-300">silent regressions</span> — then make failures{" "}
-  <span className="text-indigo-300">visible</span>,{" "}
-  <span className="text-indigo-300">reproducible</span> and{" "}
-  <span className="text-indigo-300">fixable</span>.
-</p>
-
+            <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-slate-200">
+              My work focuses on{" "}
+              <span className="text-sky-300">crash-safe execution</span>,{" "}
+              <span className="text-sky-300">resilience validation</span>,{" "}
+              <span className="text-sky-300">deterministic debugging</span>, and{" "}
+              <span className="text-indigo-300">release-safety tooling</span>{" "}
+              that makes failures visible, reproducible, and fixable.
+            </p>
 
             <div className="mt-7 flex flex-wrap justify-center gap-3">
               <a
@@ -720,205 +760,157 @@ export default function Home() {
               >
                 ✉️ Email Me
               </a>
-
               <a
                 href="#projects"
                 className="rounded-full border border-slate-600 bg-slate-950/40 px-6 py-3 text-sm text-slate-200 hover:border-sky-500/70 hover:text-slate-50"
               >
                 View Projects
               </a>
-
-              <a
-                href="#demos"
-                className="rounded-full border border-slate-600 bg-slate-950/40 px-6 py-3 text-sm text-slate-200 hover:border-sky-500/70 hover:text-slate-50"
-              >
-                Try Live Demos
-              </a>
             </div>
 
-            <div className="mt-4 text-xs text-slate-400">
-              If this work matches what you’re building, I’m one email away.
-            </div>
-
-            {/* Proof Chips */}
-            <div id="proof" className="mt-6 flex flex-wrap justify-center gap-2 text-xs text-slate-300">
-              {[
-                "Deterministic replay & invariants",
-                "Distributed state machines",
-                "Failure injection & regression gates",
-                "Prometheus / Grafana / CI/CD",
-                "C++ · Go · FastAPI · Kubernetes · Postgres",
-              ].map((x) => (
-                <span key={x} className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1">
-                  {x}
-                </span>
+            <div className="mt-8 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {proofStats.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-left"
+                >
+                  <div className="text-[0.72rem] uppercase tracking-[0.22em] text-slate-400">
+                    {stat.label}
+                  </div>
+                  <div className="mt-2 text-sm font-medium leading-relaxed text-slate-100">
+                    {stat.value}
+                  </div>
+                </div>
               ))}
             </div>
 
-            {/* Capability anchors */}
-            <div className="mt-6 mx-auto max-w-4xl grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className="mt-6 mx-auto grid max-w-4xl grid-cols-1 gap-3 md:grid-cols-3">
               <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 text-sm text-slate-200">
-                <span className="text-sky-300 font-medium">Distributed execution</span>
-                <p className="mt-1 text-slate-300 leading-relaxed">
-                  Crash-safe job processing, idempotency, retries and reconciliation.
+                <span className="font-medium text-sky-300">
+                  Distributed execution
+                </span>
+                <p className="mt-1 leading-relaxed text-slate-300">
+                  Crash-safe job processing, reconciliation, retries, and
+                  database-backed correctness guarantees.
                 </p>
               </div>
-
               <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 text-sm text-slate-200">
-                <span className="text-sky-300 font-medium">Deterministic behavior</span>
-                <p className="mt-1 text-slate-300 leading-relaxed">
-                  Execution tracing, invariant checks and fail-fast divergence detection.
+                <span className="font-medium text-sky-300">
+                  Resilience validation
+                </span>
+                <p className="mt-1 leading-relaxed text-slate-300">
+                  Recovery scorecards, readiness-integrity checks,
+                  observability, and release-safety validation under disruption.
                 </p>
               </div>
-
               <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 text-sm text-slate-200">
-                <span className="text-sky-300 font-medium">AI systems reliability</span>
-                <p className="mt-1 text-slate-300 leading-relaxed">
-                  GenAI evaluation, safety tooling and regression gates that ship.
+                <span className="font-medium text-sky-300">
+                  Deterministic debugging
+                </span>
+                <p className="mt-1 leading-relaxed text-slate-300">
+                  Replay, divergence detection, trace artifacts, and debugging
+                  workflows that make flaky failures reproducible.
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Live demos */}
+        <section id="projects" className="mb-12 space-y-10">
+          <SectionHeader
+            title="Flagship Systems & Reliability Projects"
+            subtitle="Proof-first work in crash-safe execution, resilience validation, deterministic debugging, and release-safety tooling."
+          />
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2"auto-rows-fr>
+            <FeaturedCard project={faultline} tone="indigo" />
+            <FeaturedCard project={kubePulse} tone="sky" />
+          </div>
+
+          <SmartGrid count={2}>
+            <ProjectCard project={detTrace} />
+            <ProjectCard project={autoOps} />
+          </SmartGrid>
+
+          <div className="pt-6">
+            <SectionHeader
+              title="Workflow, Tooling & Backend Projects"
+              subtitle="API-first workflow systems, debugging accelerators, and supporting performance/systems tooling."
+            />
+            <div className="mt-4">
+              <SmartGrid count={workflowProjects.length}>
+                {workflowProjects.map((project) => (
+                  <ProjectCard key={project.id} project={project} />
+                ))}
+              </SmartGrid>
+            </div>
+          </div>
+
+          <div className="pt-6">
+            <SectionHeader
+              title="ML Evaluation & Release Safety"
+              subtitle="Selective ML infrastructure work focused on deterministic evaluation, regression detection, and release gating."
+            />
+            <div className="mt-4">
+              <SmartGrid count={mlProjects.length}>
+                {mlProjects.map((project) => (
+                  <ProjectCard key={project.id} project={project} />
+                ))}
+              </SmartGrid>
+            </div>
+          </div>
+        </section>
+
         <section id="demos" className="mb-12 space-y-4">
           <SectionHeader
-            title="Live Systems You Can Try"
-            subtitle="Proof beats claims — these are deployed demos you can interact with."
+            title="Interactive Demos"
+            subtitle="Live demos for selected ML evaluation and safety projects."
           />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {demoCards.map((d) => (
-              <DemoCard key={d.title} kicker={d.kicker} title={d.title} desc={d.desc} links={d.links} />
+              <DemoCard
+                key={d.title}
+                kicker={d.kicker}
+                title={d.title}
+                desc={d.desc}
+                links={d.links}
+              />
             ))}
           </div>
         </section>
 
-        {/* Projects */}
-        <section id="projects" className="mb-12 space-y-4">
+        <section id="opensource" className="mb-12 space-y-4">
           <SectionHeader
-            title="Projects"
-            subtitle="Capability-driven: correctness, reliability, determinism and measurable behavior."
+            title="Open Source Systems Engineering"
+            subtitle="Recent reliability and correctness contributions in widely used systems SDKs and workflow tooling."
           />
-
-          {/* Filter chips */}
-          <div className="flex flex-wrap gap-2">
-            {FILTERS.map((chip) => (
-              <button
-                key={chip}
-                onClick={() => setActiveFilter(chip)}
-                className={classNames(
-                  "rounded-full border px-3 py-1 text-xs transition",
-                  activeFilter === chip
-                    ? "border-sky-500/70 bg-sky-500/10 text-sky-200"
-                    : "border-slate-700 bg-slate-950/40 text-slate-300 hover:border-sky-500/40 hover:text-slate-200"
-                )}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {openSource.map((item) => (
+              <article
+                key={item.id}
+                className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6 shadow-lg shadow-black/40 hover:border-sky-500/60"
               >
-                {chip}
-              </button>
+                <div className="text-[0.72rem] uppercase tracking-[0.22em] text-slate-400">
+                  {item.project}
+                </div>
+                <h3 className="mt-2 text-lg font-semibold text-slate-50">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-base leading-relaxed text-slate-200">
+                  {item.summary}
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-slate-300">
+                  {item.impact}
+                </p>
+              </article>
             ))}
-          </div>
-
-          {/* Featured pair */}
-          {activeFilter === "Featured" ? (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <FeaturedCard project={faultline} tone="indigo" />
-              <FeaturedCard project={faireval} tone="sky" />
-            </div>
-          ) : (
-            <ProjectGrid projects={filteredProjects} />
-          )}
-
-          {/* Reliability & Infrastructure */}
-          <div className="pt-10">
-            <SectionHeader
-              title="Reliability & Infrastructure Engineering"
-              subtitle="Make failures observable and actionable before they reach production."
-            />
-            <div className="mt-4">
-              <SmartGrid count={reliabilityInfra.length}>
-                {reliabilityInfra.map((p) => (
-                  <CaseStudyCard key={p.id} project={p} />
-                ))}
-              </SmartGrid>
-            </div>
-          </div>
-
-          {/* Execution, Determinism & Verification */}
-          <div className="pt-10">
-            <SectionHeader
-              title="Execution, Determinism & Verification"
-              subtitle="Make nondeterministic systems reproducible, verifiable and debuggable by design."
-            />
-
-            <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/60 p-5 text-base text-slate-200">
-              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">One narrative</div>
-              <p className="leading-relaxed">
-  If your team deals with <span className="text-sky-300">flaky tests</span>,{" "}
-  <span className="text-sky-300">execution divergence</span>, or{" "}
-  <span className="text-sky-300">hard-to-reproduce regressions</span>, feel free to reach out.
-</p>
-
-            </div>
-
-            <div className="mt-4">
-              <SmartGrid count={executionDeterminism.length}>
-                {executionDeterminism.map((p) => (
-                  <CaseStudyCard key={p.id} project={p} />
-                ))}
-              </SmartGrid>
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950/60 p-5 text-base text-slate-200">
-              <p className="leading-relaxed">
-                If your team deals with <span className="text-sky-300">nondeterminism</span>,{" "}
-                <span className="text-sky-300">flaky tests</span>, or{" "}
-                <span className="text-sky-300">hard-to-reproduce regressions</span>, feel free to reach out.
-              </p>
-              <div className="mt-3">
-                <a
-                  href={`mailto:${CONTACT.email}?subject=Portfolio%20-%20Determinism%20%26%20Debuggability`}
-                  className="inline-flex items-center gap-2 rounded-full border border-sky-500/40 bg-sky-500/10 px-4 py-2 text-xs text-sky-200 hover:border-sky-500/70"
-                >
-                  ✉️ Email {CONTACT.email}
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* GenAI evaluation & safety */}
-          <div className="pt-10">
-            <SectionHeader
-              title="GenAI Evaluation & Safety Tooling"
-              subtitle="Reliability-first model behavior: safety, regressions, intent."
-            />
-            <div className="mt-4">
-              <SmartGrid count={genaiSafety.length}>
-                {genaiSafety.map((p) => (
-                  <CaseStudyCard key={p.id} project={p} />
-                ))}
-              </SmartGrid>
-            </div>
-          </div>
-
-          {/* Developer tools */}
-          <div className="pt-10">
-            <SectionHeader title="Developer Tools" subtitle="Workflow-first tools that reduce debugging time and friction." />
-            <div className="mt-4">
-              <SmartGrid count={developerTools.length}>
-                {developerTools.map((p) => (
-                  <CaseStudyCard key={p.id} project={p} />
-                ))}
-              </SmartGrid>
-            </div>
           </div>
         </section>
 
-        {/* Experience */}
         <section id="experience" className="mb-12 space-y-4">
           <SectionHeader
             title="Experience"
-            subtitle="Hands-on engineering across backend systems, reliability and operations."
+            subtitle="Hands-on engineering across backend systems, observability, and operational reliability."
           />
           <div className="space-y-4">
             {experience.map((exp) => (
@@ -928,16 +920,21 @@ export default function Home() {
               >
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-50">{exp.role}</h3>
+                    <h3 className="text-lg font-semibold text-slate-50">
+                      {exp.role}
+                    </h3>
                     <p className="text-sm text-sky-400">{exp.company}</p>
                   </div>
                   <div className="flex flex-col items-start md:items-end">
-                    <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">{exp.period}</span>
-                    <span className="mt-1 text-xs text-slate-400">{exp.location}</span>
+                    <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">
+                      {exp.period}
+                    </span>
+                    <span className="mt-1 text-xs text-slate-400">
+                      {exp.location}
+                    </span>
                   </div>
                 </div>
-
-                <ul className="mt-4 space-y-2 text-base text-slate-100 leading-relaxed">
+                <ul className="mt-4 space-y-2 text-base leading-relaxed text-slate-100">
                   {exp.achievements.map((a) => (
                     <li key={a} className="flex gap-3">
                       <span className="mt-[0.2rem] text-sky-400">▹</span>
@@ -950,9 +947,11 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Education */}
         <section id="education" className="mb-12 space-y-4">
-          <SectionHeader title="Education" subtitle="CS foundation across systems, networks, security and ML." />
+          <SectionHeader
+            title="Education"
+            subtitle="CS foundation across systems, networks, security, and applied ML."
+          />
           <div className="space-y-4">
             {education.map((edu) => (
               <article
@@ -961,16 +960,21 @@ export default function Home() {
               >
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-50">{edu.degree}</h3>
+                    <h3 className="text-lg font-semibold text-slate-50">
+                      {edu.degree}
+                    </h3>
                     <p className="text-sm text-sky-400">{edu.school}</p>
                   </div>
                   <div className="flex flex-col items-start md:items-end">
-                    <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">{edu.period}</span>
-                    <span className="mt-1 text-xs text-slate-400">{edu.location}</span>
+                    <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">
+                      {edu.period}
+                    </span>
+                    <span className="mt-1 text-xs text-slate-400">
+                      {edu.location}
+                    </span>
                   </div>
                 </div>
-
-                <ul className="mt-4 space-y-2 text-base text-slate-100 leading-relaxed">
+                <ul className="mt-4 space-y-2 text-base leading-relaxed text-slate-100">
                   {edu.details.map((d) => (
                     <li key={d} className="flex gap-3">
                       <span className="mt-[0.2rem] text-sky-400">▹</span>
@@ -983,39 +987,39 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Skills (subtitle removed) */}
         <section id="skills" className="mb-12 space-y-4">
-  <SectionHeader title="Technical Skills" />
+          <SectionHeader
+            title="Technical Skills"
+            subtitle="A compact evidence-backed snapshot of the tools and concepts used across the projects above."
+          />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {Object.entries(skills).map(([category, items]) => (
+              <div
+                key={category}
+                className="flex h-full min-h-[180px] flex-col rounded-2xl border border-slate-800 bg-slate-950/70 p-6 shadow-lg shadow-black/30 hover:border-sky-500/40"
+              >
+                <h3 className="text-base font-semibold text-sky-400">
+                  {category}
+                </h3>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {items.map((skill) => (
+                    <span
+                      key={skill}
+                      className="rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1 text-[0.85rem] leading-none text-slate-300"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
 
-  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-    {Object.entries(skills).map(([category, items]) => (
-      <div
-        key={category}
-        className="flex h-full min-h-[180px] flex-col rounded-2xl border border-slate-800 bg-slate-950/70 p-6 shadow-lg shadow-black/30 hover:border-sky-500/40"
-      >
-        <h3 className="text-base font-semibold text-sky-400">{category}</h3>
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          {items.map((skill) => (
-            <span
-              key={skill}
-              className="rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1 text-[0.85rem] leading-none text-slate-300"
-            >
-              {skill}
-            </span>
-          ))}
-        </div>
-      </div>
-    ))}
-  </div>
-</section>
-
-
-        {/* Writing */}
         <section id="writing" className="mb-12 space-y-4">
           <SectionHeader
-            title="Postmortems & Engineering Notes"
-            subtitle="Write-ups from real builds: failures, missing signals, trade-offs and how to fix them."
+            title="Writing: Failures, Regressions & Deterministic Debugging"
+            subtitle="Postmortems and engineering notes from real builds, incidents, missing signals, and release-safety work."
           />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {articles.map((a) => (
@@ -1023,9 +1027,12 @@ export default function Home() {
                 key={a.id}
                 className="flex flex-col gap-2 rounded-2xl border border-slate-800 bg-slate-950/70 p-6 text-base shadow-lg shadow-black/40 hover:border-sky-500/60"
               >
-                <h3 className="text-[1.05rem] font-semibold text-slate-50">{a.title}</h3>
-                <p className="text-[1rem] text-slate-200 leading-relaxed">{a.subtitle}</p>
-
+                <h3 className="text-[1.05rem] font-semibold text-slate-50">
+                  {a.title}
+                </h3>
+                <p className="text-[1rem] leading-relaxed text-slate-200">
+                  {a.subtitle}
+                </p>
                 <div className="mt-1 flex flex-wrap gap-1">
                   {a.tags.map((t) => (
                     <span
@@ -1036,7 +1043,6 @@ export default function Home() {
                     </span>
                   ))}
                 </div>
-
                 <div className="mt-3">
                   <ExternalLink
                     href={a.href}
@@ -1050,18 +1056,19 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Contact */}
         <section id="contact" className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-300">Let’s Talk</h2>
-
+          <h2 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-300">
+            Let’s Talk
+          </h2>
           <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-7 md:p-8 text-slate-100 shadow-xl shadow-black/40">
             <p className="text-[1.05rem] leading-relaxed text-slate-200">
-              If your team cares about <span className="text-sky-300">correctness under failure</span>,{" "}
-              <span className="text-sky-300">debuggability</span>,{" "}
-              <span className="text-sky-300">observability</span> or{" "}
-              <span className="text-sky-300">GenAI reliability</span>, I’d love to hear from you.
+              If your team cares about{" "}
+              <span className="text-sky-300">correctness under failure</span>,{" "}
+              <span className="text-sky-300">distributed systems</span>,{" "}
+              <span className="text-sky-300">debuggability</span>, or{" "}
+              <span className="text-sky-300">release-safety tooling</span>, I’d
+              love to hear from you.
             </p>
-
             <div className="mt-5 flex flex-wrap items-center gap-3">
               <a
                 href={`mailto:${CONTACT.email}?subject=Portfolio%20-%20Let's%20talk`}
@@ -1069,28 +1076,24 @@ export default function Home() {
               >
                 ✉️ {CONTACT.email}
               </a>
-
               <ExternalLink
                 href={CONTACT.github}
                 className="rounded-full border border-slate-700 bg-slate-950/40 px-5 py-3 text-sm text-slate-200 hover:border-sky-500/70 hover:text-slate-50"
               >
                 GitHub
               </ExternalLink>
-
               <ExternalLink
                 href={CONTACT.linkedin}
                 className="rounded-full border border-slate-700 bg-slate-950/40 px-5 py-3 text-sm text-slate-200 hover:border-sky-500/70 hover:text-slate-50"
               >
                 LinkedIn
               </ExternalLink>
-
               <ExternalLink
                 href={CONTACT.huggingface}
                 className="rounded-full border border-slate-700 bg-slate-950/40 px-5 py-3 text-sm text-slate-200 hover:border-sky-500/70 hover:text-slate-50"
               >
                 Hugging Face
               </ExternalLink>
-
               <ExternalLink
                 href={CONTACT.medium}
                 className="rounded-full border border-slate-700 bg-slate-950/40 px-5 py-3 text-sm text-slate-200 hover:border-sky-500/70 hover:text-slate-50"
@@ -1098,15 +1101,16 @@ export default function Home() {
                 Medium
               </ExternalLink>
             </div>
-
-            <div className="mt-4 text-xs text-slate-400">Feel free to reach out — email works best.</div>
+            <div className="mt-4 text-xs text-slate-400">Email works best.</div>
           </div>
         </section>
 
-        {/* Footer */}
         <footer className="mt-10 border-t border-slate-800 pt-4 text-xs text-slate-500">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>Built with Next.js + TypeScript. Proof-first portfolio; key systems are open source.</div>
+            <div>
+              Built with Next.js + TypeScript. Proof-first portfolio; key
+              systems are open source.
+            </div>
             <div>
               © {new Date().getFullYear()} {CONTACT.name}
             </div>
@@ -1117,21 +1121,28 @@ export default function Home() {
   );
 }
 
-/* ----------------------------- Components ----------------------------- */
-
-function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+function SectionHeader({
+  title,
+  subtitle,
+}: {
+  title: string;
+  subtitle?: string;
+}) {
   const hasSubtitle = Boolean(subtitle && subtitle.trim().length > 0);
-
   return (
     <div
       className={classNames(
         "flex flex-col gap-1",
-        hasSubtitle ? "md:flex-row md:items-baseline md:justify-between" : ""
+        hasSubtitle ? "md:flex-row md:items-baseline md:justify-between" : "",
       )}
     >
-      <h2 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-300">{title}</h2>
+      <h2 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-300">
+        {title}
+      </h2>
       {hasSubtitle ? (
-        <p className="max-w-xl text-sm leading-relaxed text-slate-300 md:text-[0.95rem]">{subtitle}</p>
+        <p className="max-w-2xl text-sm leading-relaxed text-slate-300 md:text-[0.95rem]">
+          {subtitle}
+        </p>
       ) : null}
     </div>
   );
@@ -1148,7 +1159,6 @@ function ExternalLink({
 }) {
   const isHash = href.startsWith("#");
   const isMail = href.startsWith("mailto:");
-
   return (
     <a
       href={href}
@@ -1160,7 +1170,6 @@ function ExternalLink({
     </a>
   );
 }
-
 
 function DemoCard({
   kicker,
@@ -1175,10 +1184,11 @@ function DemoCard({
 }) {
   return (
     <article className="flex flex-col gap-2 rounded-2xl border border-slate-800 bg-slate-950/70 p-6 text-base shadow-lg shadow-black/40 hover:border-sky-500/60 hover:shadow-xl hover:shadow-black/60">
-      <div className="text-[0.72rem] uppercase tracking-[0.24em] text-slate-400">{kicker}</div>
+      <div className="text-[0.72rem] uppercase tracking-[0.24em] text-slate-400">
+        {kicker}
+      </div>
       <h3 className="text-[1.05rem] font-semibold text-slate-50">{title}</h3>
-      <p className="text-[1rem] text-slate-200 leading-relaxed">{desc}</p>
-
+      <p className="text-[1rem] leading-relaxed text-slate-200">{desc}</p>
       <div className="mt-3 flex flex-wrap gap-2">
         {links.map((l) => (
           <ExternalLink
@@ -1194,17 +1204,21 @@ function DemoCard({
   );
 }
 
-function FeaturedCard({ project, tone }: { project: Project; tone: "sky" | "indigo" }) {
+function FeaturedCard({
+  project,
+  tone,
+}: {
+  project: Project;
+  tone: "sky" | "indigo";
+}) {
   const toneBorder =
     tone === "sky"
       ? "border-sky-700/70 hover:border-sky-400/80"
       : "border-indigo-700/70 hover:border-indigo-400/80";
-
   const toneBg =
     tone === "sky"
       ? "from-sky-950 via-slate-950 to-slate-950/95"
       : "from-indigo-950 via-slate-950 to-slate-950/95";
-
   const toneTag =
     tone === "sky"
       ? "border-sky-500/50 bg-sky-500/10 text-sky-100"
@@ -1215,38 +1229,66 @@ function FeaturedCard({ project, tone }: { project: Project; tone: "sky" | "indi
       className={classNames(
         "rounded-3xl border bg-gradient-to-br p-7 md:p-8 shadow-xl shadow-black/60 transition",
         toneBorder,
-        toneBg
+        toneBg,
       )}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="text-[0.7rem] uppercase tracking-[0.28em] text-slate-300">Featured</div>
-        <span className={classNames("rounded-full border px-3 py-1 text-[0.7rem]", toneTag)}>{project.label}</span>
+        <div className="text-[0.7rem] uppercase tracking-[0.28em] text-slate-300">
+          Flagship
+        </div>
+        <span
+          className={classNames(
+            "rounded-full border px-3 py-1 text-[0.7rem]",
+            toneTag,
+          )}
+        >
+          {project.label}
+        </span>
       </div>
-
-      <h3 className="mt-2 text-2xl font-semibold text-slate-50">{project.name}</h3>
-      <p className="mt-2 text-lg text-slate-100 leading-relaxed">{project.oneLiner}</p>
-
+      <h3 className="mt-2 text-2xl font-semibold text-slate-50">
+        {project.name}
+      </h3>
+      <p className="mt-2 text-lg leading-relaxed text-slate-100">
+        {project.oneLiner}
+      </p>
       <div className="mt-4 grid grid-cols-1 gap-3 text-base text-slate-200">
-        {project.problem && (
+        {project.problem ? (
           <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Problem</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+              Problem
+            </div>
             <p className="mt-1 leading-relaxed">{project.problem}</p>
           </div>
-        )}
-        {project.built && (
+        ) : null}
+        {project.built ? (
           <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">What I built</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+              What I built
+            </div>
             <p className="mt-1 leading-relaxed">{project.built}</p>
           </div>
-        )}
-        {project.proof && (
+        ) : null}
+        {project.proof ? (
           <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Proof</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+              Proof
+            </div>
             <p className="mt-1 leading-relaxed">{project.proof}</p>
           </div>
-        )}
+        ) : null}
       </div>
-
+      {project.metrics?.length ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {project.metrics.map((metric) => (
+            <span
+              key={metric}
+              className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1 text-xs text-slate-200"
+            >
+              {metric}
+            </span>
+          ))}
+        </div>
+      ) : null}
       <div className="mt-4 flex flex-wrap gap-2">
         {project.links.map((l) => (
           <ExternalLink
@@ -1258,26 +1300,17 @@ function FeaturedCard({ project, tone }: { project: Project; tone: "sky" | "indi
           </ExternalLink>
         ))}
       </div>
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        {project.stack.slice(0, 10).map((s) => (
-          <span
-            key={s}
-            className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1 text-xs text-slate-300"
-          >
-            {s}
-          </span>
-        ))}
-      </div>
     </article>
   );
 }
 
-function CaseStudyCard({ project }: { project: Project }) {
+function ProjectCard({ project }: { project: Project }) {
   return (
     <article className="group flex flex-col gap-4 rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/70 via-slate-950 to-slate-950/95 p-7 md:p-8 text-base shadow-lg shadow-black/40 transition hover:border-sky-500/60 hover:shadow-xl hover:shadow-black/60">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="text-[0.78rem] uppercase tracking-[0.24em] text-slate-400">{project.label}</div>
+        <div className="text-[0.78rem] uppercase tracking-[0.24em] text-slate-400">
+          {project.label}
+        </div>
         <div className="flex flex-wrap gap-1">
           {project.tags.slice(0, 2).map((t) => (
             <span
@@ -1289,34 +1322,61 @@ function CaseStudyCard({ project }: { project: Project }) {
           ))}
         </div>
       </div>
-
       <h3 className="text-xl font-semibold text-slate-50">{project.name}</h3>
-      <p className="text-lg text-slate-100 leading-relaxed">{project.oneLiner}</p>
+      <p className="text-lg leading-relaxed text-slate-100">
+        {project.oneLiner}
+      </p>
 
       {(project.problem || project.built || project.proof) && (
-        <div className="mt-1 grid grid-cols-1 gap-2">
-          {project.problem && (
+        <div className="grid grid-cols-1 gap-2">
+          {project.problem ? (
             <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
-              <div className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-400">Problem</div>
-              <div className="mt-1 text-base text-slate-200 leading-relaxed">{project.problem}</div>
+              <div className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                Problem
+              </div>
+              <div className="mt-1 text-base leading-relaxed text-slate-200">
+                {project.problem}
+              </div>
             </div>
-          )}
-          {project.built && (
+          ) : null}
+          {project.built ? (
+            <div className="<div className="rounded-xl border border-slate-800 p-6 last:md:col-span-2">rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+              <div className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                Built
+              </div>
+              <div className="mt-1 text-base leading-relaxed text-slate-200"><div className="rounded-xl border border-slate-800 p-6 last:md:col-span-2">
+
+                {project.built}
+              </div>
+            </div>
+          ) : null}
+          {project.proof ? (
             <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
-              <div className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-400">Built</div>
-              <div className="mt-1 text-base text-slate-200 leading-relaxed">{project.built}</div>
+              <div className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                Proof
+              </div>
+              <div className="mt-1 text-base leading-relaxed text-slate-200">
+                {project.proof}
+              </div>
             </div>
-          )}
-          {project.proof && (
-            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
-              <div className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-400">Proof</div>
-              <div className="mt-1 text-base text-slate-200 leading-relaxed">{project.proof}</div>
-            </div>
-          )}
+          ) : null}
         </div>
       )}
 
-      <ul className="mt-1 space-y-2 text-base text-slate-300 leading-relaxed">
+      {project.metrics?.length ? (
+        <div className="flex flex-wrap gap-2">
+          {project.metrics.map((metric) => (
+            <span
+              key={metric}
+              className="rounded-full border border-slate-700 bg-slate-950/70 px-3 py-1 text-xs text-slate-200"
+            >
+              {metric}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      <ul className="space-y-2 text-base leading-relaxed text-slate-300">
         {project.impact.slice(0, 4).map((line) => (
           <li key={line} className="pl-3">
             <span className="mr-1 text-slate-500">•</span>
@@ -1325,7 +1385,7 @@ function CaseStudyCard({ project }: { project: Project }) {
         ))}
       </ul>
 
-      <div className="mt-2 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2">
         {project.stack.slice(0, 10).map((s) => (
           <span
             key={s}
@@ -1336,7 +1396,7 @@ function CaseStudyCard({ project }: { project: Project }) {
         ))}
       </div>
 
-      <div className="mt-1 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2">
         {project.links.map((link) => (
           <ExternalLink
             key={link.href + link.label}
@@ -1351,11 +1411,6 @@ function CaseStudyCard({ project }: { project: Project }) {
   );
 }
 
-/**
- * SmartGrid
- * - 1 card => centered, max-width (no empty space)
- * - 2+ cards => 2-column grid on md+
- */
 function SmartGrid({
   count,
   children,
@@ -1372,15 +1427,11 @@ function SmartGrid({
       </div>
     );
   }
-  return <div className={classNames("grid grid-cols-1 gap-6 md:grid-cols-2", className)}>{children}</div>;
-}
-
-function ProjectGrid({ projects }: { projects: Project[] }) {
   return (
-    <SmartGrid count={projects.length}>
-      {projects.map((p) => (
-        <CaseStudyCard key={p.id} project={p} />
-      ))}
-    </SmartGrid>
+    <div
+      className={classNames("grid grid-cols-1 gap-6 md:grid-cols-2", className)}
+    >
+      {children}
+    </div>
   );
 }
