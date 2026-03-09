@@ -519,6 +519,7 @@ const jailBreakDefense: Project = {
     { href: "https://github.com/kritibehl/JailBreakDefense", label: "GitHub" },
   ],
   tags: ["ML", "AI Safety"],
+};
 
 const speechIntentEval: Project = {
   id: "speechintenteval",
