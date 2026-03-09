@@ -822,7 +822,7 @@ export default function Home() {
             subtitle="Proof-first work in crash-safe execution, resilience validation, deterministic debugging, and release-safety tooling."
           />
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2"auto-rows-fr>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <FeaturedCard project={faultline} tone="indigo" />
             <FeaturedCard project={kubePulse} tone="sky" />
           </div>
@@ -1261,19 +1261,23 @@ function FeaturedCard({
           </div>
         ) : null}
         {project.built ? (
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-              What I built
+          <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+            <div className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-400">
+              Built
             </div>
-            <p className="mt-1 leading-relaxed">{project.built}</p>
+            <div className="mt-1 text-base leading-relaxed text-slate-200">
+              {project.built}
+            </div>
           </div>
         ) : null}
         {project.proof ? (
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+          <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+            <div className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-400">
               Proof
             </div>
-            <p className="mt-1 leading-relaxed">{project.proof}</p>
+            <div className="mt-1 text-base leading-relaxed text-slate-200">
+              {project.proof}
+            </div>
           </div>
         ) : null}
       </div>
@@ -1340,12 +1344,11 @@ function ProjectCard({ project }: { project: Project }) {
             </div>
           ) : null}
           {project.built ? (
-            <div className="<div className="rounded-xl border border-slate-800 p-6 last:md:col-span-2">rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
               <div className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-400">
                 Built
               </div>
-              <div className="mt-1 text-base leading-relaxed text-slate-200"><div className="rounded-xl border border-slate-800 p-6 last:md:col-span-2">
-
+              <div className="mt-1 text-base leading-relaxed text-slate-200">
                 {project.built}
               </div>
             </div>
@@ -1427,10 +1430,17 @@ function SmartGrid({
       </div>
     );
   }
+
+  if (count === 3) {
+    return (
+      <div className={classNames("grid grid-cols-1 gap-6 md:grid-cols-3", className)}>
+        {children}
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={classNames("grid grid-cols-1 gap-6 md:grid-cols-2", className)}
-    >
+    <div className={classNames("grid grid-cols-1 gap-6 md:grid-cols-2", className)}>
       {children}
     </div>
   );
