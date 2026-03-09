@@ -21,6 +21,7 @@ const geistMono = Geist_Mono({
    Metadata (Recruiter-facing)
 ------------------------------ */
 export const metadata: Metadata = {
+  metadataBase: new URL("https://kriti-portfolio.vercel.app"),
   title: {
     default: "Kriti Behl — Systems, Reliability & AI Engineering",
     template: "%s · Kriti Behl",
