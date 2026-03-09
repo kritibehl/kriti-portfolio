@@ -68,10 +68,10 @@ const CONTACT = {
 };
 
 const proofStats: ProofStat[] = [
-  { label: "Faultline", value: "500 race reproductions · 0 duplicate commits" },
+  { label: "Faultline", value: "1,500 race runs · 0 duplicate commits" },
   { label: "KubePulse", value: "8s recovery · resilience score 86/100" },
   { label: "AutoOps", value: "11 failure families · 11 APIs · 14 tests" },
-  { label: "DetTrace", value: "First divergence isolated at event index 5" },
+  { label: "DetTrace", value: "Event index 5 isolated · Swift companion · 3 passing tests" },
 ];
 
 const experience: Experience[] = [
@@ -203,20 +203,21 @@ const faultline: Project = {
   label: "Distributed Systems & Execution Correctness",
   name: "Faultline — Distributed Job Processing System",
   oneLiner:
-    "Crash-safe distributed job execution system with lease-based ownership, fencing token and deterministic validation under reclaim races.",
+    "Crash-safe distributed job execution system with lease-based ownership, fencing tokens and deterministic validation under reclaim races.",
   problem:
     "Retries and mid-execution crashes in distributed job systems can cause duplicate execution, stale writes and unclear recovery behavior.",
   built:
     "Built a PostgreSQL-backed execution platform with row-level locking, atomic lease acquisition, fencing tokens, crash reconciliation, lease reaping, bounded exponential backoff and database-enforced idempotency.",
   proof:
-    "Validated across 500 deterministic race reproductions with 0 duplicate commits and 500 stale-write rejections confirmed.",
+    "Validated across 1,500 deterministic race reproductions with 0 duplicate commits, 1,500 stale-write rejections, and network fault injection at 0%, 5%, and 10%.",
   metrics: [
-    "500 deterministic race runs",
+    "1,500 deterministic race runs",
     "0 duplicate commits",
-    "500 stale-write rejections",
-    "16 drill scenarios · 29 assertions",
+    "1,500 stale-write rejections",
+    "3 fault injection rates (0% / 5% / 10%)",
   ],
   impact: [
+    "Network fault injection layer (FaultProxy) validated exactly-once semantics under latency injection, connection drops and query timeouts.",
     "Guarantees correctness across worker crashes, reclaim races and retry amplification.",
     "Prevents duplicate side effects through fencing-token validation and UNIQUE(job_id, fencing_token) constraints.",
     "Makes failure states explicit and recoverable via reconciliation and lease reaping.",
@@ -275,7 +276,7 @@ const detTrace: Project = {
   label: "Deterministic Debugging",
   name: "DetTrace — Deterministic Replay & Divergence Analysis",
   oneLiner:
-    "C++ replay and divergence-analysis tool that turns flaky concurrent failures into reproducible root-cause artifacts.",
+    "C++ and Swift replay and divergence-analysis toolchain that turns flaky concurrent failures into reproducible root-cause artifacts.",
   problem:
     "Flaky concurrent failures are difficult to root-cause because downstream symptoms hide the first ordering mistake.",
   built:
@@ -286,9 +287,10 @@ const detTrace: Project = {
     "First divergence at event index 5",
     "4 generated artifacts per run",
     "20-event expected trace",
-    "Passing integration coverage",
+    "3 passing Swift tests",
   ],
   impact: [
+    "Extended with a Swift concurrency-based companion CLI (DetTraceAnalyzer) that reads trace artifacts concurrently using async/await, isolates analysis state with an actor, and generates structured JSON/Markdown divergence reports.",
     "Turns nondeterministic failures into reproducible debugging artifacts.",
     "Makes the first divergent event explicit instead of forcing downstream symptom chasing.",
     "Preserves trace artifacts even when replay aborts on mismatch.",
@@ -296,6 +298,7 @@ const detTrace: Project = {
   ],
   stack: [
     "C++17",
+    "Swift",
     "Execution tracing",
     "Guarded replay",
     "Divergence reports",
@@ -455,16 +458,17 @@ const fairEval: Project = {
   problem:
     "Model behavior drifts silently across prompt, model and retrieval changes, but most evaluations are not CI-integrated or release-gated.",
   built:
-    "Built dataset-driven evaluation runs, baseline-vs-candidate comparison, threshold-based gates, versioned artifacts and CLI + GitHub Actions workflows.",
+    "Built dataset-driven evaluation runs, baseline-vs-candidate comparison, threshold-based gates, versioned artifacts, DistilBERT inference via PyTorch/HuggingFace, and CLI + GitHub Actions workflows.",
   proof:
-    "Structures evaluation into runs, reports, compare and gate artifacts to make regression detection reproducible and release decisions auditable.",
+    "Integrated a real model regression gate that blocks release when model score delta exceeds the configured threshold (max_avg_score_drop=0.05), making release decisions reproducible and auditable.",
   metrics: [
     "4 artifact stages",
     "5+ evaluation cases",
-    "7+ automated tests",
+    "8 automated tests",
     "CI-integrated gating",
   ],
   impact: [
+    "Integrated DistilBERT inference via PyTorch/HuggingFace so the regression gate blocks release when model score delta exceeds max_avg_score_drop=0.05.",
     "Treats ML evaluation as release-blocking quality infrastructure instead of a one-off script.",
     "Detects score and pass-rate regressions before degraded variants ship.",
     "Preserves versioned artifacts for auditability and debugging.",
@@ -472,6 +476,8 @@ const fairEval: Project = {
   ],
   stack: [
     "Python",
+    "PyTorch",
+    "HuggingFace Transformers",
     "CI/CD",
     "Evaluation pipelines",
     "Versioned artifacts",
@@ -513,7 +519,6 @@ const jailBreakDefense: Project = {
     { href: "https://github.com/kritibehl/JailBreakDefense", label: "GitHub" },
   ],
   tags: ["ML", "AI Safety"],
-};
 
 const speechIntentEval: Project = {
   id: "speechintenteval",
@@ -573,6 +578,15 @@ const openSource: OpenSourceContribution[] = [
       "Updated mock workflow execution paths so OnWorkflow matchers observe propagated headers consistent with real workflow execution.",
     impact:
       "Closed the gap between test-path behavior and real runtime semantics, improving correctness for workflow-context-dependent tests.",
+  },
+  {
+    id: "azure-w3c-trace-context",
+    project: "Azure Go SDK (azcore)",
+    title: "Implemented W3C Trace Context propagation",
+    summary:
+      "Implemented traceparent/tracestate propagation in the HTTP tracing pipeline using OpenTelemetry's W3C propagator, enabling end-to-end distributed trace correlation for Azure services. Added unit tests validating header injection.",
+    impact:
+      "PR under review, CI passing.",
   },
 ];
 
@@ -753,6 +767,10 @@ export default function Home() {
               that makes failures visible, reproducible and fixable.
             </p>
 
+            <div className="mt-4 text-sm text-slate-300">
+              Python · Go · C++ · Swift · PostgreSQL · Kubernetes · PyTorch · Prometheus · GitHub Actions
+            </div>
+
             <div className="mt-7 flex flex-wrap justify-center gap-3">
               <a
                 href={`mailto:${CONTACT.email}?subject=Portfolio%20-%20Let's%20talk`}
@@ -848,8 +866,8 @@ export default function Home() {
 
           <div className="pt-6">
             <SectionHeader
-              title="Selective ML Infrastructure Work"
-              subtitle="Selective ML infrastructure work focused on deterministic evaluation, regression detection and release gating."
+              title="ML Evaluation & Release Safety Infrastructure"
+              subtitle="Deterministic evaluation, regression detection and release gating for model and system changes."
             />
             <div className="mt-4">
               <SmartGrid count={mlProjects.length}>
@@ -1101,7 +1119,8 @@ export default function Home() {
                 Medium
               </ExternalLink>
             </div>
-            <div className="mt-4 text-xs text-slate-400">Email works best.</div>
+            <div className="mt-4 text-xs text-slate-400">MS CS, University of Florida (Dec 2025) · GPA 3.8</div>
+            <div className="mt-2 text-xs text-slate-400">Email works best.</div>
           </div>
         </section>
 
