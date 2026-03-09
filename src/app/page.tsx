@@ -905,26 +905,33 @@ export default function Home() {
             title="Open Source Systems Engineering"
             subtitle="Recent reliability and correctness contributions in widely used systems SDKs and workflow tooling."
           />
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {openSource.map((item) => (
-              <article
-                key={item.id}
-                className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6 shadow-lg shadow-black/40 hover:border-sky-500/60"
-              >
-                <div className="text-[0.72rem] uppercase tracking-[0.22em] text-slate-400">
-                  {item.project}
-                </div>
-                <h3 className="mt-2 text-lg font-semibold text-slate-50">
-                  {item.title}
-                </h3>
-                <p className="mt-2 text-base leading-relaxed text-slate-200">
-                  {item.summary}
-                </p>
-                <p className="mt-3 text-sm leading-relaxed text-slate-300">
-                  {item.impact}
-                </p>
-              </article>
-            ))}
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6 shadow-lg shadow-black/40">
+            <ul className="space-y-4 text-base leading-relaxed text-slate-200">
+              <li className="flex gap-3">
+                <span className="mt-[0.2rem] text-sky-400">•</span>
+                <span>
+                  Fixed a goroutine leak in the Temporal Go SDK test environment caused by child workflows blocking on an unclosed <code className="rounded bg-slate-900 px-1 py-0.5 text-sky-300">doneChannel</code>; enforced idempotent closure using <code className="rounded bg-slate-900 px-1 py-0.5 text-sky-300">sync.Once</code> and added regression tests <span className="text-sky-300">(merged)</span>.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-[0.2rem] text-sky-400">•</span>
+                <span>
+                  Improved Azure Go SDK (<code className="rounded bg-slate-900 px-1 py-0.5 text-sky-300">azcore</code>) retry policy error propagation by surfacing <code className="rounded bg-slate-900 px-1 py-0.5 text-sky-300">realClose()</code> transport errors and composing them with request errors using <code className="rounded bg-slate-900 px-1 py-0.5 text-sky-300">errors.Join</code>, improving failure diagnosability <span className="text-slate-400">(PR under review)</span>.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-[0.2rem] text-sky-400">•</span>
+                <span>
+                  Updated Temporal Go SDK test-suite mock execution path to apply workflow context propagators so <code className="rounded bg-slate-900 px-1 py-0.5 text-sky-300">OnWorkflow</code> matchers observe headers consistent with real workflow execution <span className="text-slate-400">(PR under review)</span>.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-[0.2rem] text-sky-400">•</span>
+                <span>
+                  Implemented W3C Trace Context propagation (<code className="rounded bg-slate-900 px-1 py-0.5 text-sky-300">traceparent</code>, <code className="rounded bg-slate-900 px-1 py-0.5 text-sky-300">tracestate</code>) in the Azure Go SDK HTTP tracing pipeline using OpenTelemetry propagators; added unit tests validating header injection <span className="text-slate-400">(PR under review)</span>.
+                </span>
+              </li>
+            </ul>
           </div>
         </section>
 
