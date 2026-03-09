@@ -168,7 +168,7 @@ const demoCards = [
   {
     kicker: "Safety Middleware",
     title: "JailBreakDefense",
-    desc: "Intent-preserving jailbreak defense with benchmarks, traceable logs, and measurable safety behavior over time.",
+    desc: "Intent-preserving jailbreak defense with benchmarks, traceable logs and measurable safety behavior over time.",
     links: [
       {
         href: "https://huggingface.co/spaces/kriti0608/JailBreakDefense",
@@ -184,7 +184,7 @@ const demoCards = [
   {
     kicker: "Regression Suite",
     title: "SpeechIntentEval",
-    desc: "High-context intent regression tests for indirect, polite, sarcastic, and ambiguous assistant behavior.",
+    desc: "High-context intent regression tests for indirect, polite, sarcastic and ambiguous assistant behavior.",
     links: [
       {
         href: "https://huggingface.co/spaces/kriti0608/SpeechIntentEval",
@@ -217,10 +217,10 @@ const faultline: Project = {
     "16 drill scenarios · 29 assertions",
   ],
   impact: [
-    "Guarantees correctness across worker crashes, reclaim races, and retry amplification.",
+    "Guarantees correctness across worker crashes, reclaim races and retry amplification.",
     "Prevents duplicate side effects through fencing-token validation and UNIQUE(job_id, fencing_token) constraints.",
     "Makes failure states explicit and recoverable via reconciliation and lease reaping.",
-    "Exports Prometheus signals for retries, stale-write prevention, and reconciliation behavior.",
+    "Exports Prometheus signals for retries, stale-write prevention and reconciliation behavior.",
   ],
   stack: [
     "Python",
@@ -420,7 +420,7 @@ const accelSim: Project = {
   built:
     "Built a 7-stage pipeline simulator with 3 operation classes, configurable compute/memory limits, dependency-aware scheduling and structured report export.",
   proof:
-    "Ships with 4 workload classes, 5 stall categories, 6 report artifacts, and CLI-driven run/compare/benchmark workflows for repeatable performance analysis.",
+    "Ships with 4 workload classes, 5 stall categories, 6 report artifacts and CLI-driven run/compare/benchmark workflows for repeatable performance analysis.",
   metrics: [
     "7-stage pipeline",
     "3 op types",
@@ -457,7 +457,7 @@ const fairEval: Project = {
   built:
     "Built dataset-driven evaluation runs, baseline-vs-candidate comparison, threshold-based gates, versioned artifacts and CLI + GitHub Actions workflows.",
   proof:
-    "Structures evaluation into runs, reports, compare, and gate artifacts to make regression detection reproducible and release decisions auditable.",
+    "Structures evaluation into runs, reports, compare and gate artifacts to make regression detection reproducible and release decisions auditable.",
   metrics: [
     "4 artifact stages",
     "5+ evaluation cases",
@@ -520,9 +520,9 @@ const speechIntentEval: Project = {
   label: "Regression Dataset & Robustness",
   name: "SpeechIntentEval",
   oneLiner:
-    "Regression suite for subtle, high-context intent in assistant systems across indirect, polite, sarcastic, and ambiguous phrasing.",
+    "Regression suite for subtle, high-context intent in assistant systems across indirect, polite, sarcastic and ambiguous phrasing.",
   problem:
-    "Assistants regress on nuanced intent, and standard test sets miss realistic edge cases that fail silently in production.",
+    "Assistants regress on nuanced intent and standard test sets miss realistic edge cases that fail silently in production.",
   built:
     "Built a curated evaluation set and regression runner for comparing model behavior on the same high-context intent cases over time.",
   proof:
@@ -581,7 +581,7 @@ const articles: Article[] = [
     id: "silent-regressions",
     title: "Detecting Silent Regressions in GenAI Systems at Scale",
     subtitle:
-      "A systems approach to drift: stable metrics, reproducibility, and CI gating.",
+      "A systems approach to drift: stable metrics, reproducibility and CI gating.",
     href: "https://medium.com/@kriti0608/detecting-silent-regressions-in-genai-systems-at-scale-039ec03db1e4",
     tags: ["Production", "CI", "Metrics"],
   },
@@ -589,7 +589,7 @@ const articles: Article[] = [
     id: "distributed-system-failed",
     title: "The Day My Distributed System Failed — and Why That Was the Point",
     subtitle:
-      "Why deterministic failure drills, explicit invariants, and recovery artifacts matter more than happy-path demos.",
+      "Why deterministic failure drills, explicit invariants and recovery artifacts matter more than happy-path demos.",
     href: "https://medium.com/@kriti0608",
     tags: ["Distributed Systems", "Postmortem", "Correctness"],
   },
@@ -598,7 +598,7 @@ const articles: Article[] = [
     title:
       "Why AI Refusals Feel Like Punishment — and How I Learned to Repair Intent Instead",
     subtitle:
-      "Treating safety like reliability: measurable behavior, better UX, and inspectable fallback paths.",
+      "Treating safety like reliability: measurable behavior, better UX and inspectable fallback paths.",
     href: "https://medium.com/@kriti0608",
     tags: ["AI Safety", "Reliability", "UX"],
   },
@@ -742,15 +742,15 @@ export default function Home() {
             </p>
             <h1 className="mt-4 text-4xl font-bold tracking-tight text-white md:text-5xl">
               I build correctness-first software that stays safe under crashes,
-              races, and silent regressions.
+              races and silent regressions.
             </h1>
             <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-slate-200">
               My work focuses on{" "}
               <span className="text-sky-300">crash-safe execution</span>,{" "}
               <span className="text-sky-300">resilience validation</span>,{" "}
-              <span className="text-sky-300">deterministic debugging</span>, and{" "}
+              <span className="text-sky-300">deterministic debugging</span> and{" "}
               <span className="text-indigo-300">release-safety tooling</span>{" "}
-              that makes failures visible, reproducible, and fixable.
+              that makes failures visible, reproducible and fixable.
             </p>
 
             <div className="mt-7 flex flex-wrap justify-center gap-3">
@@ -790,7 +790,7 @@ export default function Home() {
                   Distributed execution
                 </span>
                 <p className="mt-1 leading-relaxed text-slate-300">
-                  Crash-safe job processing, reconciliation, retries, and
+                  Crash-safe job processing, reconciliation, retries and
                   database-backed correctness guarantees.
                 </p>
               </div>
@@ -800,7 +800,7 @@ export default function Home() {
                 </span>
                 <p className="mt-1 leading-relaxed text-slate-300">
                   Recovery scorecards, readiness-integrity checks,
-                  observability, and release-safety validation under disruption.
+                  observability and release-safety validation under disruption.
                 </p>
               </div>
               <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 text-sm text-slate-200">
@@ -808,7 +808,7 @@ export default function Home() {
                   Deterministic debugging
                 </span>
                 <p className="mt-1 leading-relaxed text-slate-300">
-                  Replay, divergence detection, trace artifacts, and debugging
+                  Replay, divergence detection, trace artifacts and debugging
                   workflows that make flaky failures reproducible.
                 </p>
               </div>
@@ -819,7 +819,7 @@ export default function Home() {
         <section id="projects" className="mb-12 space-y-10">
           <SectionHeader
             title="Flagship Systems & Reliability Projects"
-            subtitle="Proof-first work in crash-safe execution, resilience validation, deterministic debugging, and release-safety tooling."
+            subtitle="Proof-first work in crash-safe execution, resilience validation, deterministic debugging and release-safety tooling."
           />
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -835,7 +835,7 @@ export default function Home() {
           <div className="pt-6">
             <SectionHeader
               title="Workflow, Tooling & Backend Projects"
-              subtitle="API-first workflow systems, debugging accelerators, and supporting performance/systems tooling."
+              subtitle="API-first workflow systems, debugging accelerators and supporting performance/systems tooling."
             />
             <div className="mt-4">
               <SmartGrid count={workflowProjects.length}>
@@ -849,7 +849,7 @@ export default function Home() {
           <div className="pt-6">
             <SectionHeader
               title="ML Evaluation & Release Safety"
-              subtitle="Selective ML infrastructure work focused on deterministic evaluation, regression detection, and release gating."
+              subtitle="Selective ML infrastructure work focused on deterministic evaluation, regression detection and release gating."
             />
             <div className="mt-4">
               <SmartGrid count={mlProjects.length}>
