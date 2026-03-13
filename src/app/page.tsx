@@ -64,17 +64,18 @@ export default function Home() {
 
     document.querySelectorAll("section[id]").forEach((s) => spy.observe(s));
 
-    const cards = document.querySelectorAll(".project-card, .featured-card");
-    const handlers: Array<{ el: Element; fn: (e: MouseEvent) => void }> = [];
+    const cards = document.querySelectorAll<HTMLElement>(".project-card, .featured-card");
+    const handlers: Array<{ el: HTMLElement; fn: EventListener }> = [];
 
     cards.forEach((card) => {
-      const fn = (e: MouseEvent) => {
-        const r = (card as HTMLElement).getBoundingClientRect();
-        (card as HTMLElement).style.setProperty(
+      const fn: EventListener = (event) => {
+        const e = event as MouseEvent;
+        const r = card.getBoundingClientRect();
+        card.style.setProperty(
           "--mx",
           `${(((e.clientX - r.left) / r.width) * 100).toFixed(1)}%`
         );
-        (card as HTMLElement).style.setProperty(
+        card.style.setProperty(
           "--my",
           `${(((e.clientY - r.top) / r.height) * 100).toFixed(1)}%`
         );
