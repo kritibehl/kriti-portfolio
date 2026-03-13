@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kriti Behl — Systems & Reliability Engineering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+:root {
+  --bg:#09090c; --bg1:#0f0f13; --bg2:#141418; --bg3:#1a1a21;
+  --border:rgba(255,255,255,0.07); --border-hi:rgba(255,255,255,0.14);
+  --accent:#6366f1; --accent2:#8b5cf6; --accent-lo:rgba(99,102,241,0.1); --accent-md:rgba(99,102,241,0.2);
+  --green:#34d399; --green-lo:rgba(52,211,153,0.08);
+  --yellow:#fbbf24; --yellow-lo:rgba(251,191,36,0.08);
+  --rose:#fb7185;
+  --text:#f2f2f8; --text-2:#9898b0; --text-3:#55556a;
+  --mono:'DM Mono',monospace; --sans:'Sora',sans-serif;
+  --r:14px; --r-sm:8px;
+}
+body { background:var(--bg); color:var(--text); font-family:var(--sans); font-size:15px; line-height:1.65; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+a { color:var(--accent); text-decoration:none; }
+a:hover { text-decoration:underline; text-underline-offset:3px; }
+
+.page-wrap { display:grid; grid-template-columns:224px 1fr; min-height:100vh; max-width:1240px; margin:0 auto; }
+
+/* NAV */
+.sidenav { position:sticky; top:0; height:100vh; overflow-y:auto; border-right:1px solid var(--border); padding:40px 0; display:flex; flex-direction:column; scrollbar-width:none; }
+.sidenav::-webkit-scrollbar { display:none; }
+.nav-brand { padding:0 24px 28px; border-bottom:1px solid var(--border); margin-bottom:20px; }
+.nav-name { font-size:15px; font-weight:700; color:var(--text); letter-spacing:-0.01em; }
+.nav-role { font-size:11px; color:var(--text-3); margin-top:3px; }
+.nav-avail { display:inline-flex; align-items:center; gap:5px; margin-top:10px; font-size:10px; color:var(--green); background:var(--green-lo); border:1px solid rgba(52,211,153,0.2); border-radius:999px; padding:3px 9px; }
+.nav-avail-dot { width:5px; height:5px; border-radius:50%; background:var(--green); animation:pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.35;transform:scale(0.75)} }
+.nav-section-label { font-size:10px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-3); padding:0 24px 6px; margin-top:4px; }
+.nav-link { display:flex; align-items:center; gap:9px; padding:8px 24px; font-size:13px; color:var(--text-2); border-left:2px solid transparent; transition:color 0.15s,border-color 0.15s,background 0.15s; text-decoration:none; }
+.nav-link:hover { color:var(--text); background:rgba(255,255,255,0.025); text-decoration:none; }
+.nav-link.active { color:var(--accent); border-left-color:var(--accent); background:var(--accent-lo); }
+.nav-link-icon { font-size:13px; width:16px; text-align:center; opacity:0.6; }
+.nav-footer { margin-top:auto; padding:20px 24px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:7px; }
+.nav-footer a { font-size:11.5px; color:var(--text-3); display:flex; align-items:center; gap:6px; }
+.nav-footer a:hover { color:var(--text-2); text-decoration:none; }
+
+/* MAIN */
+.main-content { padding:0 56px 100px; min-width:0; }
+
+/* HERO */
+.hero-wrap { position:relative; padding:72px 0 80px; overflow:hidden; }
+.hero-wrap::before {
+  content:''; position:absolute; inset:-40px;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 40%, rgba(99,102,241,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 75% 20%, rgba(139,92,246,0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 55% 80%, rgba(52,211,153,0.05) 0%, transparent 50%);
+  animation:meshshift 14s ease-in-out infinite alternate; pointer-events:none;
+}
+@keyframes meshshift {
+  0%   { transform:scale(1) translate(0,0); }
+  33%  { transform:scale(1.04) translate(-1%,1.5%); }
+  66%  { transform:scale(0.97) translate(1.5%,-1%); }
+  100% { transform:scale(1.02) translate(-0.5%,0.5%); }
+}
+.hero-wrap::after { content:''; position:absolute; bottom:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(99,102,241,0.3),transparent); }
+.hero { position:relative; opacity:0; transform:translateY(18px); animation:rise 0.7s cubic-bezier(0.16,1,0.3,1) 0.05s forwards; }
+@keyframes rise { to { opacity:1; transform:translateY(0); } }
+.hero-eyebrow { display:inline-flex; align-items:center; gap:8px; font-size:11.5px; font-weight:500; color:var(--accent); letter-spacing:0.07em; text-transform:uppercase; margin-bottom:22px; background:var(--accent-lo); border:1px solid var(--accent-md); border-radius:999px; padding:5px 14px; }
+.hero-name { font-size:clamp(44px,6vw,76px); font-weight:800; letter-spacing:-0.035em; line-height:1.0; background:linear-gradient(135deg,#f2f2f8 30%,#a5b4fc 65%,#c4b5fd 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.hero-sub { margin-top:22px; font-size:18px; color:var(--text-2); max-width:580px; line-height:1.65; font-weight:300; }
+.hero-sub strong { color:var(--text); font-weight:500; }
+.hero-actions { display:flex; gap:12px; margin-top:34px; flex-wrap:wrap; }
+.btn { display:inline-flex; align-items:center; gap:8px; padding:11px 22px; border-radius:var(--r-sm); font-family:var(--sans); font-size:14px; font-weight:500; cursor:pointer; transition:all 0.18s; text-decoration:none; }
+.btn-primary { background:var(--accent); color:#fff; border:1px solid var(--accent); }
+.btn-primary:hover { background:#5153d4; text-decoration:none; box-shadow:0 0 28px rgba(99,102,241,0.45); }
+.btn-ghost { background:transparent; color:var(--text-2); border:1px solid var(--border-hi); }
+.btn-ghost:hover { border-color:rgba(255,255,255,0.28); color:var(--text); text-decoration:none; }
+
+/* STATS */
+.stat-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; margin:0 0 72px; opacity:0; animation:rise 0.6s ease 0.2s forwards; }
+.stat-cell { background:var(--bg1); padding:26px 24px; position:relative; overflow:hidden; transition:background 0.2s; }
+.stat-cell::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.stat-cell:nth-child(1)::before { background:linear-gradient(90deg,var(--accent),var(--accent2)); }
+.stat-cell:nth-child(2)::before { background:linear-gradient(90deg,var(--accent2),var(--rose)); }
+.stat-cell:nth-child(3)::before { background:linear-gradient(90deg,var(--green),#34d399cc); }
+.stat-cell:nth-child(4)::before { background:linear-gradient(90deg,var(--yellow),#fbbf24cc); }
+.stat-cell:hover { background:var(--bg2); }
+.stat-val { font-size:34px; font-weight:700; color:var(--text); letter-spacing:-0.035em; line-height:1; }
+.stat-val .unit { font-size:14px; color:var(--text-3); font-weight:400; }
+.stat-label { font-size:12px; color:var(--text-2); margin-top:7px; font-weight:500; }
+.stat-note { font-size:11px; color:var(--text-3); margin-top:3px; font-family:var(--mono); }
+
+/* SECTIONS */
+.section { margin-bottom:80px; }
+.section.reveal { opacity:0; transform:translateY(24px); transition:opacity 0.6s ease,transform 0.6s ease; }
+.section.reveal.visible { opacity:1; transform:translateY(0); }
+.section-header { display:flex; align-items:center; gap:14px; margin-bottom:28px; }
+.section-num { font-size:10.5px; font-weight:600; color:var(--accent); font-family:var(--mono); background:var(--accent-lo); border:1px solid var(--accent-md); padding:3px 8px; border-radius:5px; letter-spacing:0.04em; }
+.section-title { font-size:21px; font-weight:700; color:var(--text); letter-spacing:-0.02em; }
+.section-line { flex:1; height:1px; background:var(--border); }
+
+/* FEATURED */
+.featured-card { background:var(--bg1); border:1px solid var(--border-hi); border-radius:var(--r); padding:36px 36px 28px; margin-bottom:16px; position:relative; overflow:hidden; transition:border-color 0.25s,box-shadow 0.25s; }
+.featured-card::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(99,102,241,0.1) 0%,transparent 60%); pointer-events:none; }
+.featured-card:hover { border-color:rgba(99,102,241,0.38); box-shadow:0 0 0 1px rgba(99,102,241,0.12),0 20px 60px rgba(0,0,0,0.5); }
+.featured-badge { display:inline-flex; align-items:center; gap:6px; font-size:10px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); background:var(--accent-lo); border:1px solid var(--accent-md); border-radius:999px; padding:3px 10px; margin-bottom:16px; }
+.featured-name { font-size:22px; font-weight:700; color:var(--text); letter-spacing:-0.02em; margin-bottom:8px; }
+.featured-name a { color:var(--text); }
+.featured-name a:hover { color:var(--accent); text-decoration:none; }
+.featured-tagline { font-size:14px; color:var(--text-2); margin-bottom:24px; line-height:1.6; max-width:620px; }
+
+/* PIPELINE */
+.pipeline { display:flex; align-items:center; gap:0; background:var(--bg); border:1px solid var(--border); border-radius:var(--r-sm); padding:14px 18px; margin-bottom:22px; overflow-x:auto; scrollbar-width:none; }
+.pipeline::-webkit-scrollbar { display:none; }
+.pipe-step { display:flex; flex-direction:column; align-items:center; font-size:11px; font-family:var(--mono); color:var(--text-2); text-align:center; white-space:nowrap; flex-shrink:0; }
+.pipe-dot { width:8px; height:8px; border-radius:50%; margin-bottom:6px; position:relative; }
+.pipe-dot::after { content:''; position:absolute; inset:-3px; border-radius:50%; border:1px solid currentColor; opacity:0.3; }
+.pipe-dot-accent { background:var(--accent); color:var(--accent); }
+.pipe-dot-green  { background:var(--green);  color:var(--green); }
+.pipe-dot-yellow { background:var(--yellow); color:var(--yellow); }
+.pipe-dot-rose   { background:var(--rose);   color:var(--rose); }
+.pipe-label { font-size:10px; color:var(--text-3); margin-top:3px; }
+.pipe-arrow { flex-shrink:0; padding:0 10px; color:var(--text-3); font-size:14px; margin-bottom:14px; }
+
+/* PROJECT CARDS */
+.project-grid { display:grid; gap:14px; }
+.project-card { background:var(--bg1); border:1px solid var(--border); border-radius:var(--r); padding:26px 28px; position:relative; overflow:hidden; transition:border-color 0.22s,box-shadow 0.22s,transform 0.22s; cursor:default; }
+.project-card::after { content:''; position:absolute; inset:0; border-radius:inherit; background:radial-gradient(400px circle at var(--mx,50%) var(--my,50%),rgba(99,102,241,0.07),transparent 60%); opacity:0; transition:opacity 0.4s; pointer-events:none; }
+.project-card:hover { border-color:var(--border-hi); transform:translateY(-2px); box-shadow:0 16px 48px rgba(0,0,0,0.45); }
+.project-card:hover::after { opacity:1; }
+.card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:8px; }
+.card-name { font-size:16px; font-weight:600; color:var(--text); letter-spacing:-0.01em; }
+.card-name a { color:var(--text); }
+.card-name a:hover { color:var(--accent); text-decoration:none; }
+.card-tagline { font-size:13px; color:var(--text-3); margin-bottom:16px; font-style:italic; line-height:1.55; }
+.tag { font-size:10px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; padding:3px 9px; border-radius:999px; white-space:nowrap; flex-shrink:0; }
+.tag-sys  { background:var(--accent-lo); color:var(--accent); border:1px solid var(--accent-md); }
+.tag-ml   { background:rgba(251,191,36,0.08); color:var(--yellow); border:1px solid rgba(251,191,36,0.2); }
+.tag-tool { background:var(--green-lo); color:var(--green); border:1px solid rgba(52,211,153,0.2); }
+.tag-dbg  { background:rgba(251,113,133,0.08); color:var(--rose); border:1px solid rgba(251,113,133,0.2); }
+.bullet-list { list-style:none; display:flex; flex-direction:column; gap:8px; margin-bottom:18px; }
+.bullet-list li { font-size:13.5px; color:var(--text-2); line-height:1.6; padding-left:18px; position:relative; }
+.bullet-list li::before { content:'–'; position:absolute; left:0; color:var(--accent); font-weight:600; }
+.bullet-list li code { font-family:var(--mono); font-size:11.5px; color:var(--accent); background:var(--accent-lo); padding:1px 5px; border-radius:3px; }
+.chip-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+.chip { font-size:11px; font-family:var(--mono); color:var(--text-3); background:var(--bg2); border:1px solid var(--border); padding:3px 9px; border-radius:6px; }
+.chip-hi { color:var(--text-2); border-color:var(--border-hi); background:var(--bg3); }
+.card-links { display:flex; gap:14px; font-size:12px; font-weight:500; }
+.card-links a { color:var(--text-3); display:flex; align-items:center; gap:4px; transition:color 0.15s; }
+.card-links a:hover { color:var(--accent); text-decoration:none; }
+
+/* OSS */
+.oss-list { border:1px solid var(--border); border-radius:var(--r); overflow:hidden; display:flex; flex-direction:column; gap:1px; background:var(--border); }
+.oss-row { background:var(--bg1); padding:20px 24px; display:grid; grid-template-columns:auto 1fr auto; gap:18px; align-items:start; transition:background 0.15s; border-left:3px solid transparent; }
+.oss-row:hover { background:var(--bg2); }
+.oss-row.temporal { border-left-color:#6366f1; }
+.oss-row.azure    { border-left-color:#3b82f6; }
+.oss-pr-badge { font-family:var(--mono); font-size:11px; font-weight:500; color:var(--accent); background:var(--accent-lo); border:1px solid var(--accent-md); padding:3px 9px; border-radius:var(--r-sm); white-space:nowrap; text-decoration:none; }
+.oss-pr-badge.azure-badge { color:#60a5fa; background:rgba(96,165,250,0.08); border-color:rgba(96,165,250,0.2); }
+.oss-pr-badge:hover { opacity:0.8; text-decoration:none; }
+.oss-title { font-size:14px; font-weight:500; color:var(--text); margin-bottom:4px; }
+.oss-desc { font-size:12.5px; color:var(--text-2); line-height:1.55; }
+.oss-desc code { font-family:var(--mono); font-size:11px; color:var(--accent); background:var(--accent-lo); padding:1px 4px; border-radius:3px; }
+.oss-status { font-size:10px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; padding:4px 10px; border-radius:999px; white-space:nowrap; align-self:start; }
+.status-merged { background:var(--green-lo); color:var(--green); border:1px solid rgba(52,211,153,0.25); }
+.status-review { background:var(--yellow-lo); color:var(--yellow); border:1px solid rgba(251,191,36,0.25); }
+
+/* SKILLS */
+.skills-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+.skill-card { background:var(--bg1); border:1px solid var(--border); border-radius:var(--r); padding:20px 22px; transition:border-color 0.15s; }
+.skill-card:hover { border-color:var(--border-hi); }
+.skill-cat { font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); margin-bottom:12px; }
+.skill-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.skill-chip { font-size:12px; color:var(--text-2); background:var(--bg2); border:1px solid var(--border); padding:4px 10px; border-radius:var(--r-sm); }
+
+/* EXPERIENCE */
+.exp-list { display:flex; flex-direction:column; gap:14px; }
+.exp-card { background:var(--bg1); border:1px solid var(--border); border-radius:var(--r); padding:24px 28px; transition:border-color 0.15s; }
+.exp-card:hover { border-color:var(--border-hi); }
+.exp-top { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:3px; }
+.exp-role { font-size:15px; font-weight:600; color:var(--text); letter-spacing:-0.01em; }
+.exp-dates { font-size:12px; color:var(--text-3); font-family:var(--mono); white-space:nowrap; margin-top:2px; }
+.exp-company { font-size:13px; color:var(--accent); font-weight:500; margin-bottom:14px; }
+.exp-bullets { list-style:none; display:flex; flex-direction:column; gap:6px; }
+.exp-bullets li { font-size:13.5px; color:var(--text-2); padding-left:16px; position:relative; line-height:1.6; }
+.exp-bullets li::before { content:'·'; position:absolute; left:0; color:var(--text-3); font-size:20px; line-height:1.2; }
+
+/* WRITING */
+.writing-list { display:flex; flex-direction:column; gap:10px; }
+.writing-card { display:flex; align-items:center; justify-content:space-between; gap:16px; background:var(--bg1); border:1px solid var(--border); border-radius:var(--r); padding:18px 22px; transition:border-color 0.15s,transform 0.18s; }
+.writing-card:hover { border-color:var(--border-hi); transform:translateX(4px); text-decoration:none; }
+.writing-title { font-size:14px; font-weight:500; color:var(--text); margin-bottom:3px; }
+.writing-sub { font-size:12px; color:var(--text-3); }
+.writing-arrow { color:var(--text-3); font-size:18px; flex-shrink:0; transition:color 0.15s,transform 0.18s; }
+.writing-card:hover .writing-arrow { color:var(--accent); transform:translateX(3px); }
+
+/* CONTACT */
+.contact-card { border-radius:var(--r); padding:60px 44px; text-align:center; position:relative; overflow:hidden; border:1px solid rgba(99,102,241,0.22); background:var(--bg1); }
+.contact-card::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 70% 60% at 20% 50%,rgba(99,102,241,0.13) 0%,transparent 60%),radial-gradient(ellipse 60% 70% at 80% 30%,rgba(139,92,246,0.09) 0%,transparent 55%),radial-gradient(ellipse 50% 50% at 50% 100%,rgba(52,211,153,0.04) 0%,transparent 50%); pointer-events:none; }
+.contact-card::after { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(99,102,241,0.5),rgba(139,92,246,0.4),transparent); }
+.contact-headline { font-size:32px; font-weight:700; letter-spacing:-0.025em; color:var(--text); margin-bottom:10px; position:relative; }
+.contact-sub { font-size:15px; color:var(--text-2); max-width:480px; margin:0 auto 32px; line-height:1.65; position:relative; }
+.contact-btns { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; position:relative; }
+
+/* RESPONSIVE */
+@media (max-width:960px) {
+  .page-wrap { grid-template-columns:1fr; }
+  .sidenav { position:relative; height:auto; border-right:none; border-bottom:1px solid var(--border); flex-direction:row; overflow-x:auto; padding:14px 16px; flex-wrap:nowrap; scrollbar-width:none; }
+  .sidenav::-webkit-scrollbar { display:none; }
+  .nav-brand,.nav-section-label,.nav-footer { display:none; }
+  .nav-link { padding:6px 13px; border-left:none; border-radius:999px; white-space:nowrap; font-size:12px; }
+  .nav-link.active { background:var(--accent-lo); border:1px solid var(--accent-md); }
+  .main-content { padding:36px 20px 70px; }
+  .stat-bar { grid-template-columns:repeat(2,1fr); }
+  .skills-grid { grid-template-columns:1fr; }
+  .hero-name { font-size:40px; }
+}
+@media (max-width:540px) {
+  .hero-name { font-size:34px; }
+  .featured-card,.project-card { padding:20px 18px; }
+  .oss-row { grid-template-columns:1fr; gap:10px; }
+}
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+<nav class="sidenav">
+  <div class="nav-brand">
+    <div class="nav-name">Kriti Behl</div>
+    <div class="nav-role">Backend · Systems · Reliability</div>
+    <div class="nav-avail"><span class="nav-avail-dot"></span> Open to roles</div>
+  </div>
+  <div class="nav-section-label">Navigate</div>
+  <a class="nav-link active" href="#about"><span class="nav-link-icon">◈</span> About</a>
+  <a class="nav-link" href="#projects"><span class="nav-link-icon">◻</span> Projects</a>
+  <a class="nav-link" href="#oss"><span class="nav-link-icon">◎</span> Open Source</a>
+  <a class="nav-link" href="#skills"><span class="nav-link-icon">◇</span> Skills</a>
+  <a class="nav-link" href="#experience"><span class="nav-link-icon">▣</span> Experience</a>
+  <a class="nav-link" href="#writing"><span class="nav-link-icon">◻</span> Writing</a>
+  <a class="nav-link" href="#contact"><span class="nav-link-icon">✉</span> Contact</a>
+  <div class="nav-footer">
+    <a href="https://github.com/kritibehl" target="_blank">↗ github.com/kritibehl</a>
+    <a href="https://linkedin.com/in/kriti-behl" target="_blank">↗ linkedin.com/in/kriti-behl</a>
+    <a href="https://medium.com/@kriti0608" target="_blank">↗ medium.com/@kriti0608</a>
+    <a href="https://huggingface.co/kriti0608" target="_blank">↗ huggingface.co/kriti0608</a>
+  </div>
+</nav>
+
+<main class="main-content">
+
+  <div class="hero-wrap">
+    <section id="about" class="hero">
+      <div class="hero-eyebrow"><span>⬡</span> MS CS · University of Florida · Dec 2025 · GPA 3.8</div>
+      <h1 class="hero-name">Kriti Behl</h1>
+      <p class="hero-sub">I build <strong>correctness-first systems</strong> that stay safe under crashes, races, and silent regressions — and prove it with numbers. Distributed systems, reliability engineering, backend tooling, ML evaluation infrastructure.</p>
+      <div class="hero-actions">
+        <a href="mailto:kriti0608@gmail.com" class="btn btn-primary">✉ Email Me</a>
+        <a href="https://github.com/kritibehl" target="_blank" class="btn btn-ghost">↗ GitHub</a>
+        <a href="https://linkedin.com/in/kriti-behl" target="_blank" class="btn btn-ghost">↗ LinkedIn</a>
+        <a href="https://huggingface.co/kriti0608" target="_blank" class="btn btn-ghost">↗ Hugging Face</a>
+      </div>
+    </section>
+  </div>
+
+  <div class="stat-bar">
+    <div class="stat-cell">
+      <div class="stat-val"><span class="count-up" data-target="1500">1,500</span></div>
+      <div class="stat-label">Race Reproductions</div>
+      <div class="stat-note">0 duplicate commits</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-val"><span class="count-up" data-target="1500">1,500</span></div>
+      <div class="stat-label">Stale-Write Rejections</div>
+      <div class="stat-note">0% / 5% / 10% fault injection</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-val">4</div>
+      <div class="stat-label">OSS Pull Requests</div>
+      <div class="stat-note">2 merged · Temporal Go SDK</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-val">86<span class="unit">/100</span></div>
+      <div class="stat-label">Resilience Score</div>
+      <div class="stat-note">8s recovery · KubePulse</div>
+    </div>
+  </div>
+
+  <section id="projects" class="section reveal">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">Projects</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="featured-card">
+      <div class="featured-badge">★ Featured</div>
+      <div class="featured-name"><a href="https://github.com/kritibehl/faultline" target="_blank">Faultline — Distributed Job Processing System</a></div>
+      <div class="featured-tagline">Crash-safe distributed job execution with exactly-once semantics, fencing tokens, and deterministic race validation across 1,500 fault-injected reproductions.</div>
+      <div class="pipeline">
+        <div class="pipe-step"><div class="pipe-dot pipe-dot-accent"></div>Worker Claims<div class="pipe-label">SKIP LOCKED</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="pipe-dot pipe-dot-accent"></div>Fencing Token<div class="pipe-label">unique constraint</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="pipe-dot pipe-dot-yellow"></div>FaultProxy Injects<div class="pipe-label">latency/drop/timeout</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="pipe-dot pipe-dot-green"></div>Stale Write Rejected<div class="pipe-label">1,500 / 1,500</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="pipe-dot pipe-dot-green"></div>0 Duplicate Commits<div class="pipe-label">across all runs</div></div>
+      </div>
+      <ul class="bullet-list">
+        <li>PostgreSQL: <code>FOR UPDATE SKIP LOCKED</code>, lease-based ownership, fencing tokens, <code>UNIQUE(job_id, fencing_token)</code> DB-enforced idempotency, bounded exponential backoff</li>
+        <li>FaultProxy wraps psycopg2 to inject latency, drops, and timeouts — 0 duplicate commits and 1,500 stale-write rejections across 1,500 race reproductions at 0%, 5%, 10% fault rates</li>
+        <li>29-assertion drill suite across 16 failure scenarios · 11 Prometheus metrics · 12 automated tests</li>
+      </ul>
+      <div class="chip-row">
+        <span class="chip chip-hi">1,500 race runs</span><span class="chip chip-hi">0 duplicate commits</span><span class="chip chip-hi">1,500 stale-write rejections</span><span class="chip">12 tests</span><span class="chip">11 Prometheus metrics</span><span class="chip">Python · PostgreSQL</span>
+      </div>
+      <div class="card-links"><a href="https://github.com/kritibehl/faultline" target="_blank">↗ GitHub</a></div>
+    </div>
+
+    <div class="project-grid">
+      <div class="project-card">
+        <div class="card-top"><div class="card-name"><a href="https://github.com/kritibehl/KubePulse" target="_blank">KubePulse — Kubernetes Resilience Validation</a></div><span class="tag tag-sys">Reliability</span></div>
+        <div class="card-tagline">Measures whether services truly recover — not just whether probes say so.</div>
+        <ul class="bullet-list">
+          <li>YAML disruption scenarios (CPU stress, pod kills, network partition) with baseline-vs-observed comparison and composite resilience scorecards</li>
+          <li>Readiness false-positive detection: surfaces cases where probes report healthy while service metrics still show degradation</li>
+          <li>CPU-stress validated: 8s recovery · ~210ms p95 · ~2% error rate · resilience score 86/100</li>
+        </ul>
+        <div class="chip-row"><span class="chip chip-hi">8s recovery</span><span class="chip chip-hi">~210ms p95</span><span class="chip chip-hi">86/100 score</span><span class="chip">Python · Kubernetes · Prometheus</span></div>
+        <div class="card-links"><a href="https://github.com/kritibehl/KubePulse" target="_blank">↗ GitHub</a></div>
+      </div>
+
+      <div class="project-card">
+        <div class="card-top"><div class="card-name"><a href="https://github.com/kritibehl/autoops-insight" target="_blank">AutoOps-Insight — CI / Infra Failure Analytics</a></div><span class="tag tag-sys">Reliability</span></div>
+        <div class="card-tagline">Raw CI logs → structured incidents with config-driven rules, audit log, and operator replay.</div>
+        <ul class="bullet-list">
+          <li>11 failure families · <code>config/rules.yaml</code> drives detection patterns, ownership hints, and remediation — no backend code changes required</li>
+          <li>Admin audit log (rule ID, actor, timestamp, before/after state) · <code>python cli.py replay &lt;incident_id&gt;</code> for repeatable triage</li>
+          <li>11 FastAPI endpoints · 5 Prometheus counters · 16 passing tests · runbook in <code>docs/runbook.md</code></li>
+        </ul>
+        <div class="chip-row"><span class="chip chip-hi">11 failure families</span><span class="chip chip-hi">16 tests</span><span class="chip">Config-driven YAML</span><span class="chip">Incident replay</span><span class="chip">Python · FastAPI · SQLite</span></div>
+        <div class="card-links"><a href="https://github.com/kritibehl/autoops-insight" target="_blank">↗ GitHub</a></div>
+      </div>
+
+      <div class="project-card">
+        <div class="card-top"><div class="card-name"><a href="https://github.com/kritibehl/FairEval-Suite" target="_blank">FairEval Suite — ML Evaluation & Regression Gating</a></div><span class="tag tag-ml">ML Infra</span></div>
+        <div class="card-tagline">Blocks degraded model releases before they ship — dataset-driven, regression-gated, fully automated.</div>
+        <ul class="bullet-list">
+          <li>Pipeline: <code>cases.jsonl</code> → DistilBERT inference → RAG-overlap or classification-label scorer → <code>runs/ → reports/ → compare/ → gate/</code></li>
+          <li>Release gate blocks on avg score drop / pass-rate drop / per-case regressions · validated by <code>test_real_model_regression_gate.py</code></li>
+          <li>FastAPI: <code>POST /evaluate</code>, <code>/compare</code>, <code>/gate</code> · full CLI · Dockerfile · 11 tests</li>
+        </ul>
+        <div class="chip-row"><span class="chip chip-hi">11 tests</span><span class="chip chip-hi">3 API endpoints</span><span class="chip">DistilBERT</span><span class="chip">4 artifact stages</span><span class="chip">Python · PyTorch · FastAPI</span></div>
+        <div class="card-links">
+          <a href="https://github.com/kritibehl/FairEval-Suite" target="_blank">↗ GitHub</a>
+          <a href="https://huggingface.co/spaces/kriti0608/FairEval-Suite" target="_blank">↗ Live Demo</a>
+          <a href="https://doi.org/10.5281/zenodo.17625268" target="_blank">↗ Zenodo</a>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="card-top"><div class="card-name"><a href="https://github.com/kritibehl/ResuMate" target="_blank">ResuMate — Document Analysis Workflow Engine</a></div><span class="tag tag-tool">Tooling</span></div>
+        <div class="card-tagline">Full-stack workflow engine: async job lifecycle, React/Next.js dashboard, 8 capabilities across 12 endpoints.</div>
+        <ul class="bullet-list">
+          <li>Async lifecycle: <code>queued → running → retrying → failed → completed</code> · worker path, retry policy, per-job timeline tracking</li>
+          <li>SHA-256 fingerprinting · schema-versioned JSON contracts · fallback analyzer preserves schema-valid output</li>
+          <li>React/Next.js dashboard: success rate, avg processing time, stability by fingerprint group · 12 tests · GitHub Actions CI</li>
+        </ul>
+        <div class="chip-row"><span class="chip chip-hi">Async lifecycle</span><span class="chip chip-hi">12 tests</span><span class="chip">12 endpoints</span><span class="chip">React/Next.js dashboard</span><span class="chip">Python · FastAPI</span></div>
+        <div class="card-links"><a href="https://github.com/kritibehl/ResuMate" target="_blank">↗ GitHub</a></div>
+      </div>
+
+      <div class="project-card">
+        <div class="card-top"><div class="card-name"><a href="https://github.com/kritibehl/dettrace" target="_blank">DetTrace — Deterministic Replay & Divergence Analysis</a></div><span class="tag tag-dbg">Debugging</span></div>
+        <div class="card-tagline">C++17 + Swift toolchain that turns flaky concurrent failures into reproducible root-cause artifacts.</div>
+        <ul class="bullet-list">
+          <li>Deterministically isolated first divergence at event index 5 across a 20-event trace · preserves 4 artifacts per run</li>
+          <li>Swift companion (DetTraceAnalyzer): async/await, actor-isolated AnalysisStore, JSON + Markdown reports · 3 passing tests</li>
+        </ul>
+        <div class="chip-row"><span class="chip chip-hi">Event index 5 isolated</span><span class="chip">4 artifacts/run</span><span class="chip">3 Swift tests</span><span class="chip">C++17 · Swift</span></div>
+        <div class="card-links"><a href="https://github.com/kritibehl/dettrace" target="_blank">↗ GitHub</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="oss" class="section reveal">
+    <div class="section-header"><span class="section-num">02</span><h2 class="section-title">Open Source Contributions</h2><div class="section-line"></div></div>
+    <div class="oss-list">
+      <div class="oss-row temporal">
+        <a href="https://github.com/temporalio/sdk-go/pull/2212" target="_blank" class="oss-pr-badge">Temporal #2212</a>
+        <div class="oss-content">
+          <div class="oss-title">Fixed goroutine leak in child-workflow test environment</div>
+          <div class="oss-desc">Child workflows blocking on unclosed <code>doneChannel</code>; enforced idempotent closure with <code>sync.Once</code>; regression test added — fails without fix, passes with it.</div>
+        </div>
+        <span class="oss-status status-merged">Merged</span>
+      </div>
+      <div class="oss-row temporal">
+        <a href="https://github.com/temporalio/sdk-go/pull/2200" target="_blank" class="oss-pr-badge">Temporal #2200</a>
+        <div class="oss-content">
+          <div class="oss-title">Fixed OnWorkflow mock to observe propagated context headers</div>
+          <div class="oss-desc">Applied <code>workflowContextWithHeaderPropagated</code> to <code>ctxCopy</code>; added <code>Test_OnWorkflowMockSeesHeaderContext</code>; closes #2005.</div>
+        </div>
+        <span class="oss-status status-merged">Merged</span>
+      </div>
+      <div class="oss-row azure">
+        <a href="https://github.com/Azure/azure-sdk-for-go/pull/26051" target="_blank" class="oss-pr-badge azure-badge">Azure #26051</a>
+        <div class="oss-content">
+          <div class="oss-title">Surfaced silently dropped transport errors in azcore retry policy</div>
+          <div class="oss-desc"><code>realClose()</code> failures composed via <code>errors.Join</code> — callers can now inspect via <code>errors.Is</code> / <code>errors.As</code> instead of silent loss.</div>
+        </div>
+        <span class="oss-status status-review">In Review</span>
+      </div>
+      <div class="oss-row azure">
+        <a href="https://github.com/Azure/azure-sdk-for-go/pull/26106" target="_blank" class="oss-pr-badge azure-badge">Azure #26106</a>
+        <div class="oss-content">
+          <div class="oss-title">Implemented W3C Trace Context propagation in azcore HTTP tracing</div>
+          <div class="oss-desc"><code>traceparent</code> / <code>tracestate</code> headers propagated via OpenTelemetry propagators in the HTTP trace policy; unit tests validate header injection.</div>
+        </div>
+        <span class="oss-status status-review">In Review</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="skills" class="section reveal">
+    <div class="section-header"><span class="section-num">03</span><h2 class="section-title">Skills & Stack</h2><div class="section-line"></div></div>
+    <div class="skills-grid">
+      <div class="skill-card"><div class="skill-cat">Languages</div><div class="skill-chips"><span class="skill-chip">Python</span><span class="skill-chip">Go</span><span class="skill-chip">C++17</span><span class="skill-chip">Swift</span><span class="skill-chip">TypeScript</span><span class="skill-chip">Java</span><span class="skill-chip">SQL</span></div></div>
+      <div class="skill-card"><div class="skill-cat">Systems & Correctness</div><div class="skill-chips"><span class="skill-chip">Idempotency</span><span class="skill-chip">Fencing tokens</span><span class="skill-chip">Deterministic replay</span><span class="skill-chip">State machines</span><span class="skill-chip">Retries / backoff</span></div></div>
+      <div class="skill-card"><div class="skill-cat">Reliability Engineering</div><div class="skill-chips"><span class="skill-chip">Chaos testing</span><span class="skill-chip">Regression gating</span><span class="skill-chip">Release safety</span><span class="skill-chip">Failure mode analysis</span></div></div>
+      <div class="skill-card"><div class="skill-cat">Backend & APIs</div><div class="skill-chips"><span class="skill-chip">FastAPI</span><span class="skill-chip">REST</span><span class="skill-chip">Pydantic</span><span class="skill-chip">Node.js</span><span class="skill-chip">React</span><span class="skill-chip">Next.js</span></div></div>
+      <div class="skill-card"><div class="skill-cat">Observability</div><div class="skill-chips"><span class="skill-chip">Prometheus</span><span class="skill-chip">Grafana</span><span class="skill-chip">OpenTelemetry</span><span class="skill-chip">Structured logging</span></div></div>
+      <div class="skill-card"><div class="skill-cat">Runtime & Infrastructure</div><div class="skill-chips"><span class="skill-chip">PostgreSQL</span><span class="skill-chip">SQLite</span><span class="skill-chip">Docker</span><span class="skill-chip">Kubernetes</span><span class="skill-chip">GitHub Actions</span></div></div>
+      <div class="skill-card"><div class="skill-cat">ML & Evaluation</div><div class="skill-chips"><span class="skill-chip">PyTorch</span><span class="skill-chip">HuggingFace Transformers</span><span class="skill-chip">DistilBERT</span><span class="skill-chip">Eval pipelines</span></div></div>
+      <div class="skill-card"><div class="skill-cat">Education</div><div class="skill-chips"><span class="skill-chip">MS CS · UF · GPA 3.8</span><span class="skill-chip">Distributed Systems</span><span class="skill-chip">Networks</span><span class="skill-chip">Algorithms</span><span class="skill-chip">Security</span><span class="skill-chip">NLP</span></div></div>
+    </div>
+  </section>
+
+  <section id="experience" class="section reveal">
+    <div class="section-header"><span class="section-num">04</span><h2 class="section-title">Experience</h2><div class="section-line"></div></div>
+    <div class="exp-list">
+      <div class="exp-card">
+        <div class="exp-top"><div class="exp-role">DevSecOps Intern</div><div class="exp-dates">Jun – Aug 2025</div></div>
+        <div class="exp-company">Thales Group · Plantation, FL</div>
+        <ul class="exp-bullets">
+          <li>Backend resource utilization engine computing time-based efficiency from PostgreSQL state-transition logs across distributed resource pools; REST APIs for real-time monitoring</li>
+          <li>Deterministic state-machine logic deriving resource state from boolean flags — eliminated inconsistent state between UI and backend</li>
+          <li>Delta-based timestamp evaluation over ordered event logs for % time-in-use across configurable windows and resource groups</li>
+        </ul>
+      </div>
+      <div class="exp-card">
+        <div class="exp-top"><div class="exp-role">Software Development Intern</div><div class="exp-dates">May – Aug 2024</div></div>
+        <div class="exp-company">Elixir Web Solutions · New Delhi, India</div>
+        <ul class="exp-bullets"><li>Backend REST services on AWS with Node.js/Express; DB query optimization reduced endpoint latency ~15–25%</li></ul>
+      </div>
+      <div class="exp-card">
+        <div class="exp-top"><div class="exp-role">Software Engineering Intern</div><div class="exp-dates">Jun – Aug 2023</div></div>
+        <div class="exp-company">C1 India Pvt Ltd · Gurugram, India</div>
+        <ul class="exp-bullets"><li>Java backend modules for procurement workflows; fault-tolerance and log-recovery scenario simulation</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="writing" class="section reveal">
+    <div class="section-header"><span class="section-num">05</span><h2 class="section-title">Writing</h2><div class="section-line"></div></div>
+    <div class="writing-list">
+      <a class="writing-card" href="https://medium.com/@kriti0608/detecting-silent-regressions-in-genai-systems-at-scale-039ec03db1e4" target="_blank">
+        <div><div class="writing-title">Detecting Silent Regressions in GenAI Systems at Scale</div><div class="writing-sub">Stable metrics, reproducibility, CI gating — treating ML evaluation like reliability engineering</div></div>
+        <span class="writing-arrow">→</span>
+      </a>
+      <a class="writing-card" href="https://medium.com/@kriti0608" target="_blank">
+        <div><div class="writing-title">The Day My Distributed System Failed — and Why That Was the Point</div><div class="writing-sub">Deterministic failure drills, explicit invariants, recovery artifacts over happy-path demos</div></div>
+        <span class="writing-arrow">→</span>
+      </a>
+      <a class="writing-card" href="https://medium.com/@kriti0608" target="_blank">
+        <div><div class="writing-title">Why AI Refusals Feel Like Punishment — and How I Learned to Repair Intent Instead</div><div class="writing-sub">Safety like reliability: measurable behavior, intent repair, inspectable fallback paths</div></div>
+        <span class="writing-arrow">→</span>
+      </a>
+    </div>
+  </section>
+
+  <section id="contact" class="section reveal">
+    <div class="section-header"><span class="section-num">06</span><h2 class="section-title">Contact</h2><div class="section-line"></div></div>
+    <div class="contact-card">
+      <div class="contact-headline">Let's build something that works.</div>
+      <p class="contact-sub">Open to backend, systems, reliability, ML infra, and platform engineering roles. New grad, Dec 2025. Open to relocation.</p>
+      <div class="contact-btns">
+        <a href="mailto:kriti0608@gmail.com" class="btn btn-primary">✉ kriti0608@gmail.com</a>
+        <a href="https://linkedin.com/in/kriti-behl" target="_blank" class="btn btn-ghost">LinkedIn</a>
+        <a href="https://github.com/kritibehl" target="_blank" class="btn btn-ghost">GitHub</a>
+        <a href="https://huggingface.co/kriti0608" target="_blank" class="btn btn-ghost">Hugging Face</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+</div>
+<script>
+// Count-up
+function countUp(el, target, dur=1500) {
+  const s = performance.now();
+  const tick = now => {
+    const p = Math.min((now-s)/dur, 1), e = 1-Math.pow(1-p,4);
+    el.textContent = Math.round(e*target).toLocaleString();
+    if(p<1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+const cObs = new IntersectionObserver(es => {
+  es.forEach(e => { if(e.isIntersecting){ countUp(e.target, +e.target.dataset.target); cObs.unobserve(e.target); } });
+}, {threshold:0.4});
+document.querySelectorAll('.count-up').forEach(c => cObs.observe(c));
+
+// Scroll reveal
+const revObs = new IntersectionObserver(es => {
+  es.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); revObs.unobserve(e.target); } });
+}, {threshold:0.07});
+document.querySelectorAll('.reveal').forEach(el => revObs.observe(el));
+
+// Scroll spy
+const spy = new IntersectionObserver(es => {
+  es.forEach(e => {
+    if(e.isIntersecting){
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      const a = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+      if(a) a.classList.add('active');
+    }
+  });
+}, {rootMargin:'-30% 0px -60% 0px'});
+document.querySelectorAll('section[id]').forEach(s => spy.observe(s));
+
+// Mouse-tracking glow on cards
+document.querySelectorAll('.project-card, .featured-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    card.style.setProperty('--mx', ((e.clientX-r.left)/r.width*100).toFixed(1)+'%');
+    card.style.setProperty('--my', ((e.clientY-r.top)/r.height*100).toFixed(1)+'%');
+  });
+});
+</script>
+</body>
+</html>

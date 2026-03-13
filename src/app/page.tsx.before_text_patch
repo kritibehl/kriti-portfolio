@@ -104,8 +104,8 @@ export default function Home() {
   </div>
   <div className="nav-section-label">Navigate</div>
   <a className="nav-link active" href="#about"><span className="nav-link-icon">◈</span> About</a>
-  <a className="nav-link" href="#oss"><span className="nav-link-icon">◎</span> Open Source</a>
   <a className="nav-link" href="#projects"><span className="nav-link-icon">◻</span> Projects</a>
+  <a className="nav-link" href="#oss"><span className="nav-link-icon">◎</span> Open Source</a>
   <a className="nav-link" href="#skills"><span className="nav-link-icon">◇</span> Skills</a>
   <a className="nav-link" href="#experience"><span className="nav-link-icon">▣</span> Experience</a>
   <a className="nav-link" href="#writing"><span className="nav-link-icon">◻</span> Writing</a>
@@ -122,17 +122,57 @@ export default function Home() {
 
   <div className="hero-wrap">
     <section id="about" className="hero">
-      <div className="hero-eyebrow"><span>⬡</span> New grad · Dec 2025 · Open to relocation</div>
+      <div className="hero-eyebrow"><span>⬡</span> MS CS · University of Florida · Dec 2025 · GPA 3.8</div>
       <h1 className="hero-name">Kriti Behl</h1>
-      <p className="hero-sub">I build <strong>correctness-first backend and distributed systems</strong> that stay safe under crashes, races, and silent regressions — and I validate them with measurable proof. Distributed systems, reliability engineering, backend tooling, and ML evaluation infrastructure.</p>
+      <p className="hero-sub">I build <strong>correctness-first systems</strong> that stay safe under crashes, races, and silent regressions — and prove it with numbers. Distributed systems, reliability engineering, backend tooling, ML evaluation infrastructure.</p>
       <div className="hero-actions">
-        <a href="mailto:kriti0608@gmail.com" className="btn btn-primary">✉ Email</a>
-        <a href="https://linkedin.com/in/kriti-behl" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">↗ LinkedIn</a>
-        <a href="https://github.com/kritibehl" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">↗ GitHub</a>
-        <a href="https://huggingface.co/kriti0608" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">↗ Hugging Face</a>
-        <a href="https://medium.com/@kriti0608" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">↗ Medium</a>
-      </div>
-</section>
+  <a
+    href="/Kriti_Behl_Resume.pdf"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="btn btn-primary"
+  >
+    ↓ Resume
+  </a>
+  <a href="mailto:kriti0608@gmail.com" className="btn btn-ghost">
+    ✉ Email
+  </a>
+  <a
+    href="https://linkedin.com/in/kriti-behl"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="btn btn-ghost"
+  >
+    ↗ LinkedIn
+  </a>
+</div>
+
+<div className="hero-links-sub">
+  <a
+    href="https://github.com/kritibehl"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    GitHub
+  </a>
+  <span>·</span>
+  <a
+    href="https://huggingface.co/kriti0608"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Hugging Face
+  </a>
+  <span>·</span>
+  <a
+    href="https://medium.com/@kriti0608"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Medium
+  </a>
+</div>
+    </section>
   </div>
 
   <div className="stat-bar">
@@ -157,47 +197,6 @@ export default function Home() {
       <div className="stat-note">8s recovery · KubePulse</div>
     </div>
   </div>
-
-  <section id="oss" className="section reveal">
-    <div className="section-header"><span className="section-num">01</span><h2 className="section-title">Open Source Impact</h2><div className="section-line"></div></div>
-    <p style={{ margin: "10px 0 18px", color: "var(--text-3)", maxWidth: "860px" }}>Reliability and correctness contributions to widely used systems SDKs — with two Temporal Go SDK fixes merged and two Azure Go SDK improvements under review.</p>
-    <div className="oss-list">
-      <div className="oss-row temporal">
-        <a href="https://github.com/temporalio/sdk-go/pull/2212" target="_blank" rel="noopener noreferrer" className="oss-pr-badge">Temporal #2212</a>
-        <div className="oss-content">
-          <div className="oss-title">Fixed goroutine leak in child-workflow test environment</div>
-          <div className="oss-desc">Child workflows could block on an unclosed <code>doneChannel</code>. Added idempotent closure with <code>sync.Once</code> and a regression test that fails without the fix and passes with it.</div>
-        </div>
-        <span className="oss-status status-merged">Merged</span>
-      </div>
-      <div className="oss-row temporal">
-        <a href="https://github.com/temporalio/sdk-go/pull/2200" target="_blank" rel="noopener noreferrer" className="oss-pr-badge">Temporal #2200</a>
-        <div className="oss-content">
-          <div className="oss-title">Fixed OnWorkflow mock to observe propagated context headers</div>
-          <div className="oss-desc">Applied workflow context propagation to mock execution so <code>OnWorkflow</code> matchers see the same headers as real workflow execution.</div>
-        </div>
-        <span className="oss-status status-merged">Merged</span>
-      </div>
-      <div className="oss-row azure">
-        <a href="https://github.com/Azure/azure-sdk-for-go/pull/26051" target="_blank" rel="noopener noreferrer" className="oss-pr-badge azure-badge">Azure #26051</a>
-        <div className="oss-content">
-          <div className="oss-title">Surfaced silently dropped transport errors in azcore retry policy</div>
-          <div className="oss-desc">Composed <code>realClose()</code> transport failures with request errors using <code>errors.Join</code> so callers can inspect retry-path failures instead of losing them silently.</div>
-        </div>
-        <span className="oss-status status-review">In Review</span>
-      </div>
-      <div className="oss-row azure">
-        <a href="https://github.com/Azure/azure-sdk-for-go/pull/26106" target="_blank" rel="noopener noreferrer" className="oss-pr-badge azure-badge">Azure #26106</a>
-        <div className="oss-content">
-          <div className="oss-title">Implemented W3C Trace Context propagation in azcore HTTP tracing</div>
-          <div className="oss-desc">Added <code>traceparent</code> and <code>tracestate</code> propagation via OpenTelemetry propagators and validated header injection with tests.</div>
-        </div>
-        <span className="oss-status status-review">In Review</span>
-      </div>
-    </div>
-  </section>
-
-  
 
   <section id="projects" className="section reveal">
     <div className="section-header">
@@ -298,6 +297,44 @@ export default function Home() {
     </div>
   </section>
 
+  <section id="oss" className="section reveal">
+    <div className="section-header"><span className="section-num">02</span><h2 className="section-title">Open Source Contributions</h2><div className="section-line"></div></div>
+    <div className="oss-list">
+      <div className="oss-row temporal">
+        <a href="https://github.com/temporalio/sdk-go/pull/2212" target="_blank" rel="noopener noreferrer" className="oss-pr-badge">Temporal #2212</a>
+        <div className="oss-content">
+          <div className="oss-title">Fixed goroutine leak in child-workflow test environment</div>
+          <div className="oss-desc">Child workflows blocking on unclosed <code>doneChannel</code>; enforced idempotent closure with <code>sync.Once</code>; regression test added — fails without fix, passes with it.</div>
+        </div>
+        <span className="oss-status status-merged">Merged</span>
+      </div>
+      <div className="oss-row temporal">
+        <a href="https://github.com/temporalio/sdk-go/pull/2200" target="_blank" rel="noopener noreferrer" className="oss-pr-badge">Temporal #2200</a>
+        <div className="oss-content">
+          <div className="oss-title">Fixed OnWorkflow mock to observe propagated context headers</div>
+          <div className="oss-desc">Applied <code>workflowContextWithHeaderPropagated</code> to <code>ctxCopy</code>; added <code>Test_OnWorkflowMockSeesHeaderContext</code>; closes #2005.</div>
+        </div>
+        <span className="oss-status status-merged">Merged</span>
+      </div>
+      <div className="oss-row azure">
+        <a href="https://github.com/Azure/azure-sdk-for-go/pull/26051" target="_blank" rel="noopener noreferrer" className="oss-pr-badge azure-badge">Azure #26051</a>
+        <div className="oss-content">
+          <div className="oss-title">Surfaced silently dropped transport errors in azcore retry policy</div>
+          <div className="oss-desc"><code>realClose()</code> failures composed via <code>errors.Join</code> — callers can now inspect via <code>errors.Is</code> / <code>errors.As</code> instead of silent loss.</div>
+        </div>
+        <span className="oss-status status-review">In Review</span>
+      </div>
+      <div className="oss-row azure">
+        <a href="https://github.com/Azure/azure-sdk-for-go/pull/26106" target="_blank" rel="noopener noreferrer" className="oss-pr-badge azure-badge">Azure #26106</a>
+        <div className="oss-content">
+          <div className="oss-title">Implemented W3C Trace Context propagation in azcore HTTP tracing</div>
+          <div className="oss-desc"><code>traceparent</code> / <code>tracestate</code> headers propagated via OpenTelemetry propagators in the HTTP trace policy; unit tests validate header injection.</div>
+        </div>
+        <span className="oss-status status-review">In Review</span>
+      </div>
+    </div>
+  </section>
+
   <section id="skills" className="section reveal">
     <div className="section-header"><span className="section-num">03</span><h2 className="section-title">Skills & Stack</h2><div className="section-line"></div></div>
     <div className="skills-grid">
@@ -338,18 +375,18 @@ export default function Home() {
   </section>
 
   <section id="writing" className="section reveal">
-    <div className="section-header"><span className="section-num">05</span><h2 className="section-title">Selected Writing</h2><div className="section-line"></div></div>
+    <div className="section-header"><span className="section-num">05</span><h2 className="section-title">Writing</h2><div className="section-line"></div></div>
     <div className="writing-list">
       <a className="writing-card" href="https://medium.com/@kriti0608/detecting-silent-regressions-in-genai-systems-at-scale-039ec03db1e4" target="_blank" rel="noopener noreferrer">
-        <div><div className="writing-title">Detecting Silent Regressions in GenAI Systems at Scale</div><div className="writing-sub">How I treat ML evaluation like reliability engineering: stable metrics, reproducible artifacts, and CI release gates.</div></div>
+        <div><div className="writing-title">Detecting Silent Regressions in GenAI Systems at Scale</div><div className="writing-sub">Stable metrics, reproducibility, CI gating — treating ML evaluation like reliability engineering</div></div>
         <span className="writing-arrow">→</span>
       </a>
       <a className="writing-card" href="https://medium.com/@kriti0608" target="_blank" rel="noopener noreferrer">
-        <div><div className="writing-title">The Day My Distributed System Failed — and Why That Was the Point</div><div className="writing-sub">What deterministic failure drills taught me about invariants, recovery, and proof.</div></div>
+        <div><div className="writing-title">The Day My Distributed System Failed — and Why That Was the Point</div><div className="writing-sub">Deterministic failure drills, explicit invariants, recovery artifacts over happy-path demos</div></div>
         <span className="writing-arrow">→</span>
       </a>
       <a className="writing-card" href="https://medium.com/@kriti0608" target="_blank" rel="noopener noreferrer">
-        <div><div className="writing-title">Why AI Refusals Feel Like Punishment — and How I Learned to Repair Intent Instead</div><div className="writing-sub">A reliability-style view of safety behavior, fallback paths, and preserving user intent.</div></div>
+        <div><div className="writing-title">Why AI Refusals Feel Like Punishment — and How I Learned to Repair Intent Instead</div><div className="writing-sub">Safety like reliability: measurable behavior, intent repair, inspectable fallback paths</div></div>
         <span className="writing-arrow">→</span>
       </a>
     </div>
@@ -359,7 +396,7 @@ export default function Home() {
     <div className="section-header"><span className="section-num">06</span><h2 className="section-title">Contact</h2><div className="section-line"></div></div>
     <div className="contact-card">
       <div className="contact-headline">Let's build something that works.</div>
-      <p className="contact-sub">Open to backend, distributed systems, reliability, platform, and ML infrastructure roles. New grad, Dec 2025 · Open to relocation.</p>
+      <p className="contact-sub">Open to backend, systems, reliability, ML infra, and platform engineering roles. New grad, Dec 2025. Open to relocation.</p>
       <div className="contact-btns">
         <a href="mailto:kriti0608@gmail.com" className="btn btn-primary">✉ kriti0608@gmail.com</a>
         <a href="https://linkedin.com/in/kriti-behl" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">LinkedIn</a>

@@ -122,17 +122,49 @@ export default function Home() {
 
   <div className="hero-wrap">
     <section id="about" className="hero">
-      <div className="hero-eyebrow"><span>⬡</span> New grad · Dec 2025 · Open to relocation</div>
+      <div className="hero-eyebrow"><span>⬡</span> New grad · Dec 2025 · Gainesville, FL · Open to relocation</div>
       <h1 className="hero-name">Kriti Behl</h1>
       <p className="hero-sub">I build <strong>correctness-first backend and distributed systems</strong> that stay safe under crashes, races, and silent regressions — and I validate them with measurable proof. Distributed systems, reliability engineering, backend tooling, and ML evaluation infrastructure.</p>
       <div className="hero-actions">
-        <a href="mailto:kriti0608@gmail.com" className="btn btn-primary">✉ Email</a>
-        <a href="https://linkedin.com/in/kriti-behl" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">↗ LinkedIn</a>
-        <a href="https://github.com/kritibehl" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">↗ GitHub</a>
-        <a href="https://huggingface.co/kriti0608" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">↗ Hugging Face</a>
-        <a href="https://medium.com/@kriti0608" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">↗ Medium</a>
-      </div>
-</section>
+<a href="mailto:kriti0608@gmail.com" className="btn btn-ghost">
+    ✉ Email
+  </a>
+  <a
+    href="https://linkedin.com/in/kriti-behl"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="btn btn-ghost"
+  >
+    ↗ LinkedIn
+  </a>
+</div>
+
+<div className="hero-links-sub">
+  <a
+    href="https://github.com/kritibehl"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    GitHub
+  </a>
+  <span>·</span>
+  <a
+    href="https://huggingface.co/kriti0608"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Hugging Face
+  </a>
+  <span>·</span>
+  <a
+    href="https://medium.com/@kriti0608"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Medium
+  </a>
+</div>
+    </section>
   </div>
 
   <div className="stat-bar">
