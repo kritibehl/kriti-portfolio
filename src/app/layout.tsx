@@ -14,8 +14,8 @@ const dmMono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kriti Behl — Systems & Reliability Engineering",
-  description: "Portfolio website",
+  title: "Kriti Behl — Backend, Distributed Systems & Reliability",
+  description: "New-grad software engineer focused on backend infrastructure, distributed systems and reliability.",
 };
 
 export default function RootLayout({
