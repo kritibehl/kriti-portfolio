@@ -883,7 +883,8 @@ export default function Home() {
             <div className="writing-list">
               <a
                 className="writing-card"
-                href="PASTE_JOB_QUEUE_ARTICLE_LINK"
+                href="https://medium.com/@kriti0608/how-i-built-a-distributed-job-queue-that-stays-correct-under-crashes-races-and-network-faults-48bc50eec723
+How I Built a Distributed Job Queue That Stays Correct Under Crashes, Races, and Network Faults"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -902,7 +903,8 @@ export default function Home() {
 
               <a
                 className="writing-card"
-                href="PASTE_OBSERVABILITY_ARTICLE_LINK"
+                href="https://medium.com/@kriti0608/i-thought-i-built-observability-then-an-incident-proved-i-didnt-9b749e0d4ff3
+I Thought I Built Observability. Then an Incident Proved I Didn’t."
                 target="_blank"
                 rel="noopener noreferrer"
               >
