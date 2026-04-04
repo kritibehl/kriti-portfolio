@@ -1,10 +1,24 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export default function Home() {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     function countUp(el: HTMLElement, target: number, dur = 1500) {
+      if (prefersReducedMotion) {
+        el.textContent = target.toLocaleString();
+        return;
+      }
+
       const s = performance.now();
       const tick = (now: number) => {
         const p = Math.min((now - s) / dur, 1);
@@ -18,72 +32,76 @@ export default function Home() {
     const cObs = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const el = entry.target as HTMLElement;
-            countUp(el, Number(el.dataset.target));
-            cObs.unobserve(el);
-          }
+          if (!entry.isIntersecting) return;
+          const el = entry.target as HTMLElement;
+          countUp(el, Number(el.dataset.target));
+          cObs.unobserve(el);
         });
       },
       { threshold: 0.4 }
     );
 
-    document.querySelectorAll(".count-up").forEach((el) => cObs.observe(el));
+    root.querySelectorAll(".count-up").forEach((el) => cObs.observe(el));
 
     const revObs = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-            revObs.unobserve(entry.target);
-          }
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("visible");
+          revObs.unobserve(entry.target);
         });
       },
       { threshold: 0.07 }
     );
 
-    document.querySelectorAll(".reveal").forEach((el) => revObs.observe(el));
+    root.querySelectorAll(".reveal").forEach((el) => {
+      if (prefersReducedMotion) {
+        el.classList.add("visible");
+      } else {
+        revObs.observe(el);
+      }
+    });
 
     const spy = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            document
-              .querySelectorAll(".nav-link")
-              .forEach((l) => l.classList.remove("active"));
+          if (!entry.isIntersecting) return;
 
-            const a = document.querySelector(
-              `.nav-link[href="#${(entry.target as HTMLElement).id}"]`
-            );
-            if (a) a.classList.add("active");
-          }
+          root.querySelectorAll(".nav-link").forEach((l) => l.classList.remove("active"));
+
+          const a = root.querySelector(
+            `.nav-link[href="#${(entry.target as HTMLElement).id}"]`
+          );
+          if (a) a.classList.add("active");
         });
       },
       { rootMargin: "-30% 0px -60% 0px" }
     );
 
-    document.querySelectorAll("section[id]").forEach((s) => spy.observe(s));
+    root.querySelectorAll("section[id]").forEach((s) => spy.observe(s));
 
-    const cards = document.querySelectorAll<HTMLElement>(".project-card, .featured-card");
+    const cards = root.querySelectorAll<HTMLElement>(".project-card, .featured-card");
     const handlers: Array<{ el: HTMLElement; fn: EventListener }> = [];
 
-    cards.forEach((card) => {
-      const fn: EventListener = (event) => {
-        const e = event as MouseEvent;
-        const r = card.getBoundingClientRect();
-        card.style.setProperty(
-          "--mx",
-          `${(((e.clientX - r.left) / r.width) * 100).toFixed(1)}%`
-        );
-        card.style.setProperty(
-          "--my",
-          `${(((e.clientY - r.top) / r.height) * 100).toFixed(1)}%`
-        );
-      };
+    if (!prefersReducedMotion) {
+      cards.forEach((card) => {
+        const fn: EventListener = (event) => {
+          const e = event as MouseEvent;
+          const r = card.getBoundingClientRect();
+          card.style.setProperty(
+            "--mx",
+            `${(((e.clientX - r.left) / r.width) * 100).toFixed(1)}%`
+          );
+          card.style.setProperty(
+            "--my",
+            `${(((e.clientY - r.top) / r.height) * 100).toFixed(1)}%`
+          );
+        };
 
-      card.addEventListener("mousemove", fn);
-      handlers.push({ el: card, fn });
-    });
+        card.addEventListener("mousemove", fn);
+        handlers.push({ el: card, fn });
+      });
+    }
 
     return () => {
       cObs.disconnect();
@@ -95,7 +113,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="page-wrap">
+      <div ref={rootRef} className="page-wrap">
         <nav className="sidenav">
           <div className="nav-brand">
             <div className="nav-name">Kriti Behl</div>
@@ -109,11 +127,11 @@ export default function Home() {
           <a className="nav-link active" href="#about">
             <span className="nav-link-icon">◈</span> About
           </a>
-          <a className="nav-link" href="#oss">
-            <span className="nav-link-icon">◎</span> Open Source
-          </a>
           <a className="nav-link" href="#projects">
             <span className="nav-link-icon">◻</span> Projects
+          </a>
+          <a className="nav-link" href="#oss">
+            <span className="nav-link-icon">◎</span> Open Source
           </a>
           <a className="nav-link" href="#skills">
             <span className="nav-link-icon">◇</span> Skills
@@ -129,20 +147,36 @@ export default function Home() {
           </a>
 
           <div className="nav-footer">
-            <a href="https://github.com/kritibehl" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://github.com/kritibehl"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Open GitHub profile"
+            >
               ↗ github.com/kritibehl
             </a>
             <a
               href="https://linkedin.com/in/kriti-behl"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Open LinkedIn profile"
             >
               ↗ linkedin.com/in/kriti-behl
             </a>
-            <a href="https://medium.com/@kriti0608" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://medium.com/@kriti0608"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Open Medium profile"
+            >
               ↗ medium.com/@kriti0608
             </a>
-            <a href="https://huggingface.co/kriti0608" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://huggingface.co/kriti0608"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Open Hugging Face profile"
+            >
               ↗ huggingface.co/kriti0608
             </a>
           </div>
@@ -154,13 +188,16 @@ export default function Home() {
               <div className="hero-eyebrow">
                 <span>⬡</span> New grad · Dec 2025 · Open to relocation
               </div>
+
               <h1 className="hero-name">Kriti Behl</h1>
+
               <p className="hero-sub">
-                New-grad software engineer focused on{" "}
-                <strong>backend infrastructure, distributed systems and reliability</strong>.
+                New-grad software engineer building{" "}
+                <strong>backend and distributed systems that stay correct under failure</strong>.
                 Built production backend systems at Thales Group, contributed merged fixes to the
-                Temporal Go SDK, and developed projects around crash safety, resilience validation,
-                incident analysis and release safety.
+                Temporal Go SDK, and built proof-heavy systems including 0 duplicate commits across
+                1,500 fault-injected race reproductions and resilience checks that catch unsafe
+                behavior even when probes still report healthy.
               </p>
 
               <div className="hero-actions">
@@ -200,6 +237,33 @@ export default function Home() {
                   ↗ Hugging Face
                 </a>
               </div>
+
+              <div className="start-here">
+                <div className="start-here-label">Start here</div>
+                <div className="start-here-links">
+                  <a
+                    href="https://github.com/kritibehl/faultline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Faultline → correctness under failure
+                  </a>
+                  <a
+                    href="https://github.com/kritibehl/KubePulse"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    KubePulse → resilience validation
+                  </a>
+                  <a
+                    href="https://github.com/temporalio/sdk-go/pulls?q=is%3Apr+author%3Akritibehl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Temporal PRs → open-source credibility
+                  </a>
+                </div>
+              </div>
             </section>
           </div>
 
@@ -210,18 +274,8 @@ export default function Home() {
                   1,500
                 </span>
               </div>
-              <div className="stat-label">Race Reproductions</div>
-              <div className="stat-note">0 duplicate commits</div>
-            </div>
-
-            <div className="stat-cell">
-              <div className="stat-val">
-                <span className="count-up" data-target="1500">
-                  1,500
-                </span>
-              </div>
-              <div className="stat-label">Stale-Write Rejections</div>
-              <div className="stat-note">0% / 5% / 10% fault injection</div>
+              <div className="stat-label">Fault-Injected Race Runs</div>
+              <div className="stat-note">0 duplicate commits · 1,500 stale writes blocked</div>
             </div>
 
             <div className="stat-cell">
@@ -237,13 +291,340 @@ export default function Home() {
                 86<span className="unit">/100</span>
               </div>
               <div className="stat-label">Resilience Score</div>
-              <div className="stat-note">8s recovery · KubePulse</div>
+              <div className="stat-note">8s recovery · KubePulse validation</div>
+            </div>
+
+            <div className="stat-cell">
+              <div className="stat-val">100k</div>
+              <div className="stat-label">Production Records / Run</div>
+              <div className="stat-note">Backend analytics at Thales Group</div>
             </div>
           </div>
 
-          <section id="oss" className="section reveal">
+          <section id="projects" className="section reveal">
             <div className="section-header">
               <span className="section-num">01</span>
+              <h2 className="section-title">Projects</h2>
+              <div className="section-line"></div>
+            </div>
+
+            <p style={{ margin: "10px 0 18px", color: "var(--text-3)", maxWidth: "860px" }}>
+              These projects are built to show not just that systems work, but what happens when
+              they fail, drift, recover, or become unsafe in ways surface health checks can miss.
+            </p>
+
+            <div className="featured-card">
+              <div className="featured-badge">★ Featured</div>
+              <div className="featured-name">
+                <a
+                  href="https://github.com/kritibehl/faultline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Faultline — Distributed Job Processing System
+                </a>
+              </div>
+
+              <div className="featured-tagline">
+                Distributed job execution system designed to stay correct under crashes, lease
+                races, and transport faults — validated with 1,500 fault-injected race runs, 0
+                duplicate commits, and 1,500 stale-write rejections.
+              </div>
+
+              <div className="card-why">
+                Why it matters: shows distributed correctness, failure handling, and
+                production-style validation under conditions where naive queue designs break.
+              </div>
+
+              <div className="pipeline">
+                <div className="pipe-step">
+                  <div className="pipe-dot pipe-dot-accent"></div>Worker Claims
+                  <div className="pipe-label">SKIP LOCKED</div>
+                </div>
+                <div className="pipe-arrow">→</div>
+                <div className="pipe-step">
+                  <div className="pipe-dot pipe-dot-accent"></div>Fencing Token
+                  <div className="pipe-label">unique constraint</div>
+                </div>
+                <div className="pipe-arrow">→</div>
+                <div className="pipe-step">
+                  <div className="pipe-dot pipe-dot-yellow"></div>FaultProxy Injects
+                  <div className="pipe-label">latency/drop/timeout</div>
+                </div>
+                <div className="pipe-arrow">→</div>
+                <div className="pipe-step">
+                  <div className="pipe-dot pipe-dot-green"></div>Stale Write Rejected
+                  <div className="pipe-label">1,500 / 1,500</div>
+                </div>
+                <div className="pipe-arrow">→</div>
+                <div className="pipe-step">
+                  <div className="pipe-dot pipe-dot-green"></div>0 Duplicate Commits
+                  <div className="pipe-label">across all runs</div>
+                </div>
+              </div>
+
+              <ul className="bullet-list">
+                <li>
+                  PostgreSQL: <code>FOR UPDATE SKIP LOCKED</code>, lease-based ownership, fencing
+                  tokens, <code>UNIQUE(job_id, fencing_token)</code> DB-enforced idempotency,
+                  bounded exponential backoff
+                </li>
+                <li>
+                  FaultProxy wraps psycopg2 to inject latency, drops, and timeouts — 0 duplicate
+                  commits and 1,500 stale-write rejections across 1,500 race reproductions at 0%,
+                  5%, 10% fault rates
+                </li>
+                <li>
+                  29-assertion drill suite across 16 failure scenarios · 11 Prometheus metrics · 12
+                  automated tests
+                </li>
+              </ul>
+
+              <div className="chip-row">
+                <span className="chip chip-hi">1,500 race runs</span>
+                <span className="chip chip-hi">0 duplicate commits</span>
+                <span className="chip chip-hi">1,500 stale-write rejections</span>
+                <span className="chip">12 tests</span>
+                <span className="chip">11 Prometheus metrics</span>
+                <span className="chip">Python · PostgreSQL</span>
+              </div>
+
+              <div className="card-links">
+                <a
+                  href="https://github.com/kritibehl/faultline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  ↗ GitHub
+                </a>
+              </div>
+            </div>
+
+            <div className="project-grid">
+              <div className="project-card">
+                <div className="card-top">
+                  <div className="card-name">
+                    <a
+                      href="https://github.com/kritibehl/KubePulse"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      KubePulse — Kubernetes Resilience Validation
+                    </a>
+                  </div>
+                  <span className="tag tag-sys">Reliability</span>
+                </div>
+                <div className="card-tagline">
+                  Measures whether services truly recover — not just whether probes say so.
+                </div>
+                <div className="card-why">
+                  Why it matters: shows that I can evaluate real recovery behavior instead of
+                  trusting green probes.
+                </div>
+                <ul className="bullet-list">
+                  <li>
+                    YAML disruption scenarios (CPU stress, pod kills, network partition) with
+                    baseline-vs-observed comparison and composite resilience scorecards
+                  </li>
+                  <li>
+                    Readiness false-positive detection: surfaces cases where probes report healthy
+                    while service metrics still show degradation
+                  </li>
+                  <li>
+                    CPU-stress validated: 8s recovery · ~210ms p95 · ~2% error rate · resilience
+                    score 86/100
+                  </li>
+                </ul>
+                <div className="chip-row">
+                  <span className="chip chip-hi">8s recovery</span>
+                  <span className="chip chip-hi">~210ms p95</span>
+                  <span className="chip chip-hi">86/100 score</span>
+                  <span className="chip">Python · Kubernetes · Prometheus</span>
+                </div>
+                <div className="card-links">
+                  <a
+                    href="https://github.com/kritibehl/KubePulse"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    ↗ GitHub
+                  </a>
+                </div>
+              </div>
+
+              <div className="project-card">
+                <div className="card-top">
+                  <div className="card-name">
+                    <a
+                      href="https://github.com/kritibehl/autoops-insight"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      AutoOps-Insight — CI / Infra Failure Analytics
+                    </a>
+                  </div>
+                  <span className="tag tag-sys">Reliability</span>
+                </div>
+                <div className="card-tagline">
+                  Raw CI logs → structured incidents with config-driven rules, audit log, and
+                  operator replay.
+                </div>
+                <div className="card-why">
+                  Why it matters: shows operator-facing incident triage, structured failure
+                  analysis, and debugging workflows.
+                </div>
+                <ul className="bullet-list">
+                  <li>
+                    11 failure families · <code>config/rules.yaml</code> drives detection patterns,
+                    ownership hints, and remediation — no backend code changes required
+                  </li>
+                  <li>
+                    Admin audit log (rule ID, actor, timestamp, before/after state) ·{" "}
+                    <code>python cli.py replay &lt;incident_id&gt;</code> for repeatable triage
+                  </li>
+                  <li>
+                    11 FastAPI endpoints · 5 Prometheus counters · 16 passing tests · runbook in{" "}
+                    <code>docs/runbook.md</code>
+                  </li>
+                </ul>
+                <div className="chip-row">
+                  <span className="chip chip-hi">11 failure families</span>
+                  <span className="chip chip-hi">16 tests</span>
+                  <span className="chip">Config-driven YAML</span>
+                  <span className="chip">Incident replay</span>
+                  <span className="chip">Python · FastAPI · SQLite</span>
+                </div>
+                <div className="card-links">
+                  <a
+                    href="https://github.com/kritibehl/autoops-insight"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    ↗ GitHub
+                  </a>
+                </div>
+              </div>
+
+              <div className="project-card">
+                <div className="card-top">
+                  <div className="card-name">
+                    <a
+                      href="https://github.com/kritibehl/dettrace"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      DetTrace — Deterministic Replay & Divergence Analysis
+                    </a>
+                  </div>
+                  <span className="tag tag-dbg">Debugging</span>
+                </div>
+                <div className="card-tagline">
+                  C++17 + Swift toolchain that turns flaky concurrent failures into reproducible
+                  root-cause artifacts.
+                </div>
+                <div className="card-why">
+                  Why it matters: shows deterministic debugging and first-divergence isolation for
+                  hard-to-reproduce failures.
+                </div>
+                <ul className="bullet-list">
+                  <li>
+                    Deterministically isolated first divergence at event index 5 across a 20-event
+                    trace · preserves 4 artifacts per run
+                  </li>
+                  <li>
+                    Swift companion (DetTraceAnalyzer): async/await, actor-isolated AnalysisStore,
+                    JSON + Markdown reports · 3 passing tests
+                  </li>
+                </ul>
+                <div className="chip-row">
+                  <span className="chip chip-hi">Event index 5 isolated</span>
+                  <span className="chip">4 artifacts/run</span>
+                  <span className="chip">3 Swift tests</span>
+                  <span className="chip">C++17 · Swift</span>
+                </div>
+                <div className="card-links">
+                  <a
+                    href="https://github.com/kritibehl/dettrace"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    ↗ GitHub
+                  </a>
+                </div>
+              </div>
+
+              <div className="project-card">
+                <div className="card-top">
+                  <div className="card-name">
+                    <a
+                      href="https://github.com/kritibehl/FairEval-Suite"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      FairEval Suite — ML Evaluation & Regression Gating
+                    </a>
+                  </div>
+                  <span className="tag tag-ml">ML Infra</span>
+                </div>
+                <div className="card-tagline">
+                  Blocks degraded model releases before they ship — dataset-driven,
+                  regression-gated, fully automated.
+                </div>
+                <div className="card-why">
+                  Why it matters: shows release gating and regression prevention for ML systems
+                  before bad changes ship.
+                </div>
+                <ul className="bullet-list">
+                  <li>
+                    Pipeline: <code>cases.jsonl</code> → DistilBERT inference → RAG-overlap or
+                    classification-label scorer → <code>runs/ → reports/ → compare/ → gate/</code>
+                  </li>
+                  <li>
+                    Release gate blocks on avg score drop / pass-rate drop / per-case regressions ·
+                    validated by <code>test_real_model_regression_gate.py</code>
+                  </li>
+                  <li>
+                    FastAPI: <code>POST /evaluate</code>, <code>/compare</code>, <code>/gate</code>{" "}
+                    · full CLI · Dockerfile · 11 tests
+                  </li>
+                </ul>
+                <div className="chip-row">
+                  <span className="chip chip-hi">11 tests</span>
+                  <span className="chip chip-hi">3 API endpoints</span>
+                  <span className="chip">DistilBERT</span>
+                  <span className="chip">4 artifact stages</span>
+                  <span className="chip">Python · PyTorch · FastAPI</span>
+                </div>
+                <div className="card-links">
+                  <a
+                    href="https://github.com/kritibehl/FairEval-Suite"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    ↗ GitHub
+                  </a>
+                  <a
+                    href="https://huggingface.co/spaces/kriti0608/FairEval-Suite"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    ↗ Live Demo
+                  </a>
+                  <a
+                    href="https://doi.org/10.5281/zenodo.17625268"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    ↗ Zenodo
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="oss" className="section reveal">
+            <div className="section-header">
+              <span className="section-num">02</span>
               <h2 className="section-title">Open Source Impact</h2>
               <div className="section-line"></div>
             </div>
@@ -360,348 +741,6 @@ export default function Home() {
                   </div>
                 </div>
                 <span className="oss-status status-review">In Review</span>
-              </div>
-            </div>
-          </section>
-
-          <section id="projects" className="section reveal">
-            <div className="section-header">
-              <span className="section-num">02</span>
-              <h2 className="section-title">Projects</h2>
-              <div className="section-line"></div>
-            </div>
-
-            <div className="featured-card">
-              <div className="featured-badge">★ Featured</div>
-              <div className="featured-name">
-                <a
-                  href="https://github.com/kritibehl/faultline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Faultline — Distributed Job Processing System
-                </a>
-              </div>
-              <div className="featured-tagline">
-                Crash-safe distributed job execution with exactly-once semantics, fencing tokens,
-                and deterministic race validation across 1,500 fault-injected reproductions.
-              </div>
-
-              <div className="pipeline">
-                <div className="pipe-step">
-                  <div className="pipe-dot pipe-dot-accent"></div>Worker Claims
-                  <div className="pipe-label">SKIP LOCKED</div>
-                </div>
-                <div className="pipe-arrow">→</div>
-                <div className="pipe-step">
-                  <div className="pipe-dot pipe-dot-accent"></div>Fencing Token
-                  <div className="pipe-label">unique constraint</div>
-                </div>
-                <div className="pipe-arrow">→</div>
-                <div className="pipe-step">
-                  <div className="pipe-dot pipe-dot-yellow"></div>FaultProxy Injects
-                  <div className="pipe-label">latency/drop/timeout</div>
-                </div>
-                <div className="pipe-arrow">→</div>
-                <div className="pipe-step">
-                  <div className="pipe-dot pipe-dot-green"></div>Stale Write Rejected
-                  <div className="pipe-label">1,500 / 1,500</div>
-                </div>
-                <div className="pipe-arrow">→</div>
-                <div className="pipe-step">
-                  <div className="pipe-dot pipe-dot-green"></div>0 Duplicate Commits
-                  <div className="pipe-label">across all runs</div>
-                </div>
-              </div>
-
-              <ul className="bullet-list">
-                <li>
-                  PostgreSQL: <code>FOR UPDATE SKIP LOCKED</code>, lease-based ownership, fencing
-                  tokens, <code>UNIQUE(job_id, fencing_token)</code> DB-enforced idempotency,
-                  bounded exponential backoff
-                </li>
-                <li>
-                  FaultProxy wraps psycopg2 to inject latency, drops, and timeouts — 0 duplicate
-                  commits and 1,500 stale-write rejections across 1,500 race reproductions at 0%,
-                  5%, 10% fault rates
-                </li>
-                <li>
-                  29-assertion drill suite across 16 failure scenarios · 11 Prometheus metrics · 12
-                  automated tests
-                </li>
-              </ul>
-
-              <div className="chip-row">
-                <span className="chip chip-hi">1,500 race runs</span>
-                <span className="chip chip-hi">0 duplicate commits</span>
-                <span className="chip chip-hi">1,500 stale-write rejections</span>
-                <span className="chip">12 tests</span>
-                <span className="chip">11 Prometheus metrics</span>
-                <span className="chip">Python · PostgreSQL</span>
-              </div>
-
-              <div className="card-links">
-                <a
-                  href="https://github.com/kritibehl/faultline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  ↗ GitHub
-                </a>
-              </div>
-            </div>
-
-            <div className="project-grid">
-              <div className="project-card">
-                <div className="card-top">
-                  <div className="card-name">
-                    <a
-                      href="https://github.com/kritibehl/KubePulse"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      KubePulse — Kubernetes Resilience Validation
-                    </a>
-                  </div>
-                  <span className="tag tag-sys">Reliability</span>
-                </div>
-                <div className="card-tagline">
-                  Measures whether services truly recover — not just whether probes say so.
-                </div>
-                <ul className="bullet-list">
-                  <li>
-                    YAML disruption scenarios (CPU stress, pod kills, network partition) with
-                    baseline-vs-observed comparison and composite resilience scorecards
-                  </li>
-                  <li>
-                    Readiness false-positive detection: surfaces cases where probes report healthy
-                    while service metrics still show degradation
-                  </li>
-                  <li>
-                    CPU-stress validated: 8s recovery · ~210ms p95 · ~2% error rate · resilience
-                    score 86/100
-                  </li>
-                </ul>
-                <div className="chip-row">
-                  <span className="chip chip-hi">8s recovery</span>
-                  <span className="chip chip-hi">~210ms p95</span>
-                  <span className="chip chip-hi">86/100 score</span>
-                  <span className="chip">Python · Kubernetes · Prometheus</span>
-                </div>
-                <div className="card-links">
-                  <a
-                    href="https://github.com/kritibehl/KubePulse"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    ↗ GitHub
-                  </a>
-                </div>
-              </div>
-
-              <div className="project-card">
-                <div className="card-top">
-                  <div className="card-name">
-                    <a
-                      href="https://github.com/kritibehl/autoops-insight"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      AutoOps-Insight — CI / Infra Failure Analytics
-                    </a>
-                  </div>
-                  <span className="tag tag-sys">Reliability</span>
-                </div>
-                <div className="card-tagline">
-                  Raw CI logs → structured incidents with config-driven rules, audit log, and
-                  operator replay.
-                </div>
-                <ul className="bullet-list">
-                  <li>
-                    11 failure families · <code>config/rules.yaml</code> drives detection patterns,
-                    ownership hints, and remediation — no backend code changes required
-                  </li>
-                  <li>
-                    Admin audit log (rule ID, actor, timestamp, before/after state) ·{" "}
-                    <code>python cli.py replay &lt;incident_id&gt;</code> for repeatable triage
-                  </li>
-                  <li>
-                    11 FastAPI endpoints · 5 Prometheus counters · 16 passing tests · runbook in{" "}
-                    <code>docs/runbook.md</code>
-                  </li>
-                </ul>
-                <div className="chip-row">
-                  <span className="chip chip-hi">11 failure families</span>
-                  <span className="chip chip-hi">16 tests</span>
-                  <span className="chip">Config-driven YAML</span>
-                  <span className="chip">Incident replay</span>
-                  <span className="chip">Python · FastAPI · SQLite</span>
-                </div>
-                <div className="card-links">
-                  <a
-                    href="https://github.com/kritibehl/autoops-insight"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    ↗ GitHub
-                  </a>
-                </div>
-              </div>
-
-              <div className="project-card">
-                <div className="card-top">
-                  <div className="card-name">
-                    <a
-                      href="https://github.com/kritibehl/dettrace"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      DetTrace — Deterministic Replay & Divergence Analysis
-                    </a>
-                  </div>
-                  <span className="tag tag-dbg">Debugging</span>
-                </div>
-                <div className="card-tagline">
-                  C++17 + Swift toolchain that turns flaky concurrent failures into reproducible
-                  root-cause artifacts.
-                </div>
-                <ul className="bullet-list">
-                  <li>
-                    Deterministically isolated first divergence at event index 5 across a 20-event
-                    trace · preserves 4 artifacts per run
-                  </li>
-                  <li>
-                    Swift companion (DetTraceAnalyzer): async/await, actor-isolated AnalysisStore,
-                    JSON + Markdown reports · 3 passing tests
-                  </li>
-                </ul>
-                <div className="chip-row">
-                  <span className="chip chip-hi">Event index 5 isolated</span>
-                  <span className="chip">4 artifacts/run</span>
-                  <span className="chip">3 Swift tests</span>
-                  <span className="chip">C++17 · Swift</span>
-                </div>
-                <div className="card-links">
-                  <a
-                    href="https://github.com/kritibehl/dettrace"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    ↗ GitHub
-                  </a>
-                </div>
-              </div>
-
-              <div className="project-card">
-                <div className="card-top">
-                  <div className="card-name">
-                    <a
-                      href="https://github.com/kritibehl/FairEval-Suite"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      FairEval Suite — ML Evaluation & Regression Gating
-                    </a>
-                  </div>
-                  <span className="tag tag-ml">ML Infra</span>
-                </div>
-                <div className="card-tagline">
-                  Blocks degraded model releases before they ship — dataset-driven, regression-gated,
-                  fully automated.
-                </div>
-                <ul className="bullet-list">
-                  <li>
-                    Pipeline: <code>cases.jsonl</code> → DistilBERT inference → RAG-overlap or
-                    classification-label scorer → <code>runs/ → reports/ → compare/ → gate/</code>
-                  </li>
-                  <li>
-                    Release gate blocks on avg score drop / pass-rate drop / per-case regressions ·
-                    validated by <code>test_real_model_regression_gate.py</code>
-                  </li>
-                  <li>
-                    FastAPI: <code>POST /evaluate</code>, <code>/compare</code>, <code>/gate</code>{" "}
-                    · full CLI · Dockerfile · 11 tests
-                  </li>
-                </ul>
-                <div className="chip-row">
-                  <span className="chip chip-hi">11 tests</span>
-                  <span className="chip chip-hi">3 API endpoints</span>
-                  <span className="chip">DistilBERT</span>
-                  <span className="chip">4 artifact stages</span>
-                  <span className="chip">Python · PyTorch · FastAPI</span>
-                </div>
-                <div className="card-links">
-                  <a
-                    href="https://github.com/kritibehl/FairEval-Suite"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    ↗ GitHub
-                  </a>
-                  <a
-                    href="https://huggingface.co/spaces/kriti0608/FairEval-Suite"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    ↗ Live Demo
-                  </a>
-                  <a
-                    href="https://doi.org/10.5281/zenodo.17625268"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    ↗ Zenodo
-                  </a>
-                </div>
-              </div>
-
-              <div className="project-card">
-                <div className="card-top">
-                  <div className="card-name">
-                    <a
-                      href="https://github.com/kritibehl/ResuMate"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      ResuMate — Document Analysis Workflow Engine
-                    </a>
-                  </div>
-                  <span className="tag tag-tool">Tooling</span>
-                </div>
-                <div className="card-tagline">
-                  Full-stack workflow engine: async job lifecycle, React/Next.js dashboard, 8
-                  capabilities across 12 endpoints.
-                </div>
-                <ul className="bullet-list">
-                  <li>
-                    Async lifecycle: <code>queued → running → retrying → failed → completed</code>{" "}
-                    · worker path, retry policy, per-job timeline tracking
-                  </li>
-                  <li>
-                    SHA-256 fingerprinting · schema-versioned JSON contracts · fallback analyzer
-                    preserves schema-valid output
-                  </li>
-                  <li>
-                    React/Next.js dashboard: success rate, avg processing time, stability by
-                    fingerprint group · 12 tests · GitHub Actions CI
-                  </li>
-                </ul>
-                <div className="chip-row">
-                  <span className="chip chip-hi">Async lifecycle</span>
-                  <span className="chip chip-hi">12 tests</span>
-                  <span className="chip">12 endpoints</span>
-                  <span className="chip">React/Next.js dashboard</span>
-                  <span className="chip">Python · FastAPI</span>
-                </div>
-                <div className="card-links">
-                  <a
-                    href="https://github.com/kritibehl/ResuMate"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    ↗ GitHub
-                  </a>
-                </div>
               </div>
             </div>
           </section>
@@ -889,8 +928,8 @@ export default function Home() {
               >
                 <div>
                   <div className="writing-title">
-                    How I Built a Distributed Job Queue That Stays Correct Under Crashes, Races, and
-                    Network Faults
+                    How I Built a Distributed Job Queue That Stays Correct Under Crashes, Races,
+                    and Network Faults
                   </div>
                   <div className="writing-sub">
                     A deep dive into exactly-once execution semantics, fencing tokens, and
@@ -947,7 +986,9 @@ export default function Home() {
 
             <div className="contact-card">
               <div className="contact-headline">
-                Open to backend, infrastructure, reliability and production engineering roles.
+                I’m targeting backend, infrastructure, reliability, and production engineering
+                roles where correctness under failure and system behavior under degradation actually
+                matter.
               </div>
               <p className="contact-sub">New grad, Dec 2025 · Open to relocation.</p>
               <div className="contact-btns">
