@@ -239,6 +239,8 @@ export default function Home() {
               </div>
 
               
+            </section>
+          </div>
 
           <div className="stat-bar">
             <div className="stat-cell">
