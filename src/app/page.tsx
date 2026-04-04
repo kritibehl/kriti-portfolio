@@ -238,34 +238,7 @@ export default function Home() {
                 </a>
               </div>
 
-              <div className="start-here">
-                <div className="start-here-label">Start here</div>
-                <div className="start-here-links">
-                  <a
-                    href="https://github.com/kritibehl/faultline"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Faultline → correctness under failure
-                  </a>
-                  <a
-                    href="https://github.com/kritibehl/KubePulse"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    KubePulse → resilience validation
-                  </a>
-                  <a
-                    href="https://github.com/temporalio/sdk-go/pulls?q=is%3Apr+author%3Akritibehl"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Temporal PRs → open-source credibility
-                  </a>
-                </div>
-              </div>
-            </section>
-          </div>
+              
 
           <div className="stat-bar">
             <div className="stat-cell">
