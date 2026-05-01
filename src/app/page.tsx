@@ -427,14 +427,48 @@ export default function Home() {
         <div className="section-label">04 — Experience</div>
         <div className="exp-list">
           {[
-            { role: "Graduate Assistant", dates: "Dec 2024 – Dec 2025", company: "University of Florida · Gainesville, FL", bullets: ["Maintained and debugged a production scheduling system used by ~600–800 students weekly, resolving edge cases in constraint logic and ensuring reliable availability during peak registration periods."] },
-            { role: "DevSecOps Intern", dates: "Jun – Aug 2025", company: "Thales Group · Plantation, FL", bullets: ["Built a PostgreSQL-backed backend analytics service processing ~100k state-transition records per run, giving operations teams real-time visibility into resource utilization across distributed pools.","Designed deterministic state-resolution logic and timestamp-delta aggregation over historical event logs to compute configurable utilization metrics across 24-hour to 30-day reporting windows.","Built REST APIs and operational dashboards for resource- and group-level efficiency reporting, enabling capacity planners to identify underutilized resources without affecting live request-processing paths."] },
-            { role: "Software Development Intern", dates: "May – Aug 2024", company: "Elixir Web Solutions · New Delhi, India", bullets: ["Built backend REST services on AWS using Node.js and Express, strengthening API behavior with improved input validation and structured error handling.","Optimized database query execution plans and indexing, reducing endpoint latency by ~15–25% in performance tests."] },
-            { role: "Software Engineering Intern", dates: "Jun – Aug 2023", company: "C1 India Pvt Ltd · Gurugram, India", bullets: ["Built Java backend modules for procurement workflows with transactional safeguards and log-recovery simulation for safer pre-production behavior."] },
+            {
+              role: "Software Engineer",
+              dates: "Feb 2026 – Present",
+              company: "Cheenti Digital LLC · Remote",
+              current: true,
+              bullets: [
+                "Built 4-phase internal platform unifying analytics, search, campaign, and website-performance workflows into one reporting and monitoring system",
+                "Developed automated diagnostics covering 5+ technical issue classes: crawlability, broken links, redirect chains, metadata gaps, and sitemap issues",
+                "Built monitoring workflows across 4 performance dimensions to surface regressions earlier than periodic reporting",
+              ],
+            },
+            {
+              role: "DevSecOps Intern",
+              dates: "Jun 2025 – Aug 2025",
+              company: "Thales Group · Plantation, FL",
+              current: false,
+              bullets: [
+                "Built Python backend processing ~100k state-transition records per run; computed per-resource utilization, queue depth, and efficiency across HSM resource pools (payShield 10K, Luna HSM)",
+                "Replaced frontend JavaScript state computation with deterministic backend state engine; REST endpoints exposing real-time HSM state, queue depth, idle/recovery counts, and time-in-state from PostgreSQL event logs",
+                "Implemented configurable time-window efficiency analysis (24h–N days) via delta-based evaluation; exposed via REST APIs",
+                "Built internal dashboard for DevOps/engineering teams showing per-resource-type efficiency charts across HSM states: active, idle, queued, recovery, validation, error",
+              ],
+            },
+            {
+              role: "Graduate Assistant",
+              dates: "Dec 2024 – Dec 2025",
+              company: "University of Florida · Gainesville, FL",
+              current: false,
+              bullets: [
+                "Operated and improved production scheduling system used by ~600–800 weekly users; diagnosed live failures and restored correctness during active usage",
+              ],
+            },
           ].map((e) => (
-            <div key={e.role} className="exp-card">
+            <div key={e.role + e.company} className="exp-card">
               <div className="exp-head">
-                <div><div className="exp-role">{e.role}</div><div className="exp-company">{e.company}</div></div>
+                <div>
+                  <div className="exp-role">
+                    {e.role}
+                    {e.current && <span className="exp-current">Current</span>}
+                  </div>
+                  <div className="exp-company">{e.company}</div>
+                </div>
                 <div className="exp-dates">{e.dates}</div>
               </div>
               <ul className="exp-bullets">{e.bullets.map((b) => <li key={b}>{b}</li>)}</ul>
