@@ -1,30 +1,30 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const [activeTab, setActiveTab] = useState("all");
 
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
     const pref = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    function countUp(el: HTMLElement, target: number, dur = 2000) {
+    function countUp(el: HTMLElement, target: number, dur = 2200) {
       if (pref) { el.textContent = target.toLocaleString(); return; }
       const s = performance.now();
       const tick = (now: number) => {
         const p = Math.min((now - s) / dur, 1);
-        const e = 1 - Math.pow(1 - p, 4);
-        el.textContent = Math.round(e * target).toLocaleString();
+        el.textContent = Math.round((1 - Math.pow(1 - p, 4)) * target).toLocaleString();
         if (p < 1) requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
     }
 
     const cObs = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        const el = entry.target as HTMLElement;
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        const el = e.target as HTMLElement;
         countUp(el, Number(el.dataset.target));
         cObs.unobserve(el);
       });
@@ -46,483 +46,510 @@ export default function Home() {
     return () => { cObs.disconnect(); rObs.disconnect(); };
   }, []);
 
+  const tabs = [
+    { id: "all",     label: "All Projects" },
+    { id: "ai",      label: "AI Platform / Eval" },
+    { id: "backend", label: "Backend / Platform" },
+    { id: "sre",     label: "Reliability / SRE" },
+    { id: "systems", label: "Systems / Runtime" },
+  ];
+
+  const projects = [
+    {
+      id: "agentgrid",
+      lanes: ["ai", "backend"],
+      eye: "AgentGrid + AutoOps · AI Agents · Operational GenAI",
+      impact: "AI-native support platform with agentic workflows, eval gates, trace viewer, incident timeline, and operational dashboard.",
+      title: "Operational GenAI Incident Intelligence",
+      problem: "Most AI demos stop at generation. This system handles what happens when AI is wrong — no structure, no escalation, no incident record.",
+      built: "RAG retrieval → LangGraph workflow → MCP-style tool execution → eval gate → ship/hold/escalate → AutoOps incident ingestion. Live on Cloud Run.",
+      verified: "30 passing tests · 9 ship / 10 hold / 6 escalate · 258ms p95 eval latency · 0.88 tool-call success rate · 0 unsafe shipments",
+      proves: "I can build agentic AI systems that validate, escalate, and create structured operational intelligence — not just generate.",
+      tags: ["FastAPI","LangGraph","AI agents","Eval gates","Cloud Run","AutoOps"],
+      chips: [["Live Demo",true],["30 tests",true],["0 unsafe shipments",true],["GitHub",false]],
+      links: [["↗ Live Demo","https://agentgrid-seven.vercel.app/"],["↗ AgentGrid","https://github.com/kritibehl/agentgrid"],["↗ AutoOps","https://github.com/kritibehl/AutoOps-Insight"]],
+    },
+    {
+      id: "faultline",
+      lanes: ["backend", "sre"],
+      eye: "Faultline · Distributed Systems · Backend · PostgreSQL · SRE",
+      impact: "Distributed execution correctness framework preventing stale-worker corruption with PostgreSQL fencing-token validation.",
+      title: "Distributed Correctness Platform",
+      problem: "Stale workers commit outdated results after lease takeover. Lease expiry stops new claims — it does not stop a worker already holding a reference from writing late.",
+      built: "PostgreSQL fencing-token validation via UNIQUE(job_id, fencing_token), fault-injection proxy, reconciler, 29-assertion drill suite, k6 load tests, 11 Prometheus metrics, observability stack.",
+      verified: "0.0% duplicate commits under 5–20% injected fault rate · 1,500+ failure scenarios · 0 invariant violations · naive baseline: 1.0–2.5% duplicate rate",
+      proves: "I can reason about distributed correctness, race conditions, and database-backed failure safety under real injected failures.",
+      tags: ["PostgreSQL","Distributed systems","Go","Python","Observability","k6","Correctness"],
+      chips: [["0.0% duplicates",true],["1,500+ scenarios",true],["0 violations",true],["GitHub",false]],
+      links: [["↗ GitHub","https://github.com/kritibehl/faultline"]],
+    },
+    {
+      id: "kubepulse",
+      lanes: ["sre", "backend"],
+      eye: "KubePulse + NetRouteLab · Kubernetes · Release Safety · SRE",
+      impact: "Cloud-native release-safety platform that blocks unsafe deployments using rollout gates, dependency checks, and network-path validation.",
+      title: "Release Safety Validation Platform",
+      problem: "Readiness probes report healthy while latency spikes, error rates rise, or dependency cascades degrade real traffic silently.",
+      built: "Baseline-vs-degraded comparison engine, SLO gate, probe integrity check, DNS/TCP/TLS diagnostics, dependency risk scoring, rollback recommendations — CI/CD integrable.",
+      verified: "+333% p95 drift caught with probes green · AMD MI300X: +608% p95 regression blocked · safe_to_operate=false generated · network-aware release decision report",
+      proves: "I can turn unreliable health checks into release-blocking operational decisions, extended to GPU inference serving.",
+      tags: ["Kubernetes","CI/CD","Release gates","Terraform","Python","DNS/TLS","Rollback"],
+      chips: [["+608% blocked",true],["+333% p95",true],["GitHub",false],["AMD proof",false]],
+      links: [["↗ GitHub","https://github.com/kritibehl/KubePulse"]],
+    },
+    {
+      id: "faireval",
+      lanes: ["ai"],
+      eye: "FairEval-Suite · AI Evaluation · Responsible AI · ML Platform",
+      impact: "AI release-safety platform with Responsible AI gates, RAG groundedness metrics, regression views, and hardware-aware serving gates.",
+      title: "AI Release Safety & Evaluation Platform",
+      problem: "Most GenAI failures are silent: unsupported claims, hallucinated facts, and latency regressions can ship unless evaluation is treated like release infrastructure.",
+      built: "FastAPI eval APIs + React dashboards with RAI gates, RAG groundedness metrics, Welch t-test + chi-squared significance testing, 10-case regression library, hardware-aware serving gate, CI release gate.",
+      verified: "Gemini Flash: 0.367 avg / 40% pass → BLOCK · AMD serving: p95 +47.1% → BLOCK despite quality pass · p=0.0 on both statistical tests · Zenodo report published",
+      proves: "I can build AI release gates that catch hallucination, safety, latency, and regression failures before deployment.",
+      tags: ["PyTorch","FastAPI","React","RAG eval","Responsible AI","Statistical gating"],
+      chips: [["Live Demo",true],["p=0.0 sig.",true],["AMD gate",true],["Zenodo report",false]],
+      links: [["↗ GitHub","https://github.com/kritibehl/FairEval-Suite"],["↗ Live Demo","https://huggingface.co/spaces/kriti0608/FairEval-Suite"],["↗ Zenodo","https://doi.org/10.5281/zenodo.17625268"]],
+    },
+    {
+      id: "autoops",
+      lanes: ["ai", "sre", "backend"],
+      eye: "AutoOps-Insight · AIOps · Incident Intelligence · Developer Tooling",
+      impact: "CI failure intelligence platform converting noisy CI logs into structured incidents, recurrence signals, and hold/release decisions.",
+      title: "CI Failure Intelligence Dashboard",
+      problem: "When CI pipelines fail, engineers open raw logs and guess. No structure, no recurrence memory, no release decision.",
+      built: "FastAPI + React/Vite: ingests CI logs → classifies failure families → fingerprints recurrence → generates hold_release / investigate with confidence scores and SQL analytics.",
+      verified: "102 incidents tracked · 51 escalations · 60% release-blocking decisions · 0.91 confidence on dns_failure and latency_spike",
+      proves: "I can build AIOps-style incident intelligence that replaces manual log triage with structured release decisions.",
+      tags: ["FastAPI","React","PostgreSQL","Kafka","SQL analytics","Incident intelligence"],
+      chips: [["102 incidents",true],["0.91 confidence",true],["GitHub",false],["Live API",false]],
+      links: [["↗ GitHub","https://github.com/kritibehl/AutoOps-Insight"]],
+    },
+    {
+      id: "dettrace",
+      lanes: ["systems"],
+      eye: "DetTrace · Systems Debugging · Replay Diagnostics · C++",
+      impact: "Deterministic replay platform isolating the first incorrect event before any visible failure downstream.",
+      title: "Replay Diagnostics Platform",
+      problem: "Concurrency failures refuse to reproduce. Add a log and the bug disappears. By the time you have data, the interleaving is gone.",
+      built: "C++17 deterministic replay engine, Swift actor-isolated analysis, visual trace timeline, SPI/UART/I2C-style replay diagnostics, syscall/process timeline, replay explorer CLI.",
+      verified: "GPIO interrupt race: first divergence at index 3 · Timer missed tick: first divergence at index 1 · 1.0 confidence on repeated incident patterns",
+      proves: "I can build debuggability infrastructure that turns non-reproducible failures into deterministic, replayable root-cause artifacts.",
+      tags: ["C++17","Swift","CMake","Deterministic replay","Trace analysis","Linux"],
+      chips: [["Index 3 isolated",true],["1.0 confidence",true],["GitHub",false]],
+      links: [["↗ GitHub","https://github.com/kritibehl/dettrace"]],
+    },
+    {
+      id: "accelsim",
+      lanes: ["systems"],
+      eye: "AccelSim-Lite · C++ Performance · Runtime Validation",
+      impact: "C++ runtime and performance validation platform with named bottleneck classification, benchmark dashboard, and cache/locality studies.",
+      title: "C++ Runtime & Performance Platform",
+      problem: "Profilers say a workload is slow. They don't say which stage is stalling — or whether adding compute units helps vs. the bottleneck being memory bandwidth.",
+      built: "C++17 six-stage pipeline simulator with named stall classification per cycle: WaitingDependency, NoMemoryPort, NoComputeUnit. Benchmark dashboard, cache/locality studies, runtime regression gates.",
+      verified: "Pointer-heavy traversal: 25.65× slower than contiguous scan · memory_heavy: 2.4× throughput degradation · runtime regression gate: PASS",
+      proves: "I can instrument C++ runtime behavior, identify binding constraints, and build reproducible performance validation workflows.",
+      tags: ["C++17","CMake","GoogleTest","Linux","Cache locality","Perf analysis"],
+      chips: [["25.65× cache miss",true],["2.4× degradation",true],["GitHub",false]],
+      links: [["↗ GitHub","https://github.com/kritibehl/accelsim-lite"]],
+    },
+  ];
+
+  const visible = activeTab === "all" ? projects : projects.filter(p => p.lanes.includes(activeTab));
+
   return (
-    <div ref={rootRef}>
+    <div ref={rootRef} className="page">
 
-      {/* HERO */}
-      <section className="hero">
-        <div className="hero-inner">
-          <div className="hero-badge"><span className="badge-dot" />Open to roles · New grad Dec 2025 · Open to relocation</div>
-          <h1 className="hero-name">Kriti Behl</h1>
-          <p className="hero-line">Software engineer building systems that <span className="hero-accent">catch failures before production.</span></p>
-          <p className="hero-desc">Backend · Reliability · Developer Tooling · AI Infrastructure. Production backend at <strong>Thales Group</strong>, 4 merged fixes to the <strong>Temporal Go SDK</strong>.</p>
-
-          <div className="proof-block">
-            <div className="pb-label">What I&apos;ve proven</div>
-            <div className="pb-items">
-              <div className="pb-item"><span className="pb-icon">✓</span><span>Prevented distributed system corruption — <strong>0.0% duplicate commits</strong> under fault injection</span></div>
-              <div className="pb-item"><span className="pb-icon">✓</span><span>Blocked unsafe deployments — caught <strong>+608% p95 regression</strong> on AMD MI300X</span></div>
-              <div className="pb-item"><span className="pb-icon">✓</span><span>Turned CI failures into release decisions — <strong>0.91 confidence</strong> classification</span></div>
-              <div className="pb-item"><span className="pb-icon">✓</span><span>Fixed concurrency bugs in production Go SDK — <strong>4 merged Temporal PRs</strong></span></div>
-            </div>
-          </div>
-
-          <div className="hero-btns">
-            <a href="#projects" className="btn-pri">View Work →</a>
-            <a href="https://github.com/kritibehl" target="_blank" rel="noopener noreferrer" className="btn-sec">GitHub ↗</a>
-            <a href="https://linkedin.com/in/kriti-behl" target="_blank" rel="noopener noreferrer" className="btn-sec">LinkedIn ↗</a>
-            <a href="mailto:kriti0608@gmail.com" className="btn-sec">Email</a>
-            <a href="https://medium.com/@kriti0608" target="_blank" rel="noopener noreferrer" className="btn-sec">Medium ↗</a>
-            <a href="https://huggingface.co/kriti0608" target="_blank" rel="noopener noreferrer" className="btn-sec">HuggingFace ↗</a>
-          </div>
+      {/* ── HERO ─────────────────────────────────── */}
+      <section className="hero rev">
+        <div className="hero-eyebrow">
+          <span className="hero-dot" />
+          Open to roles · New grad Dec 2025 · Open to relocation
         </div>
 
-        <div className="hero-stats">
-          <div className="hstat">
-            <div className="hstat-num"><span className="count-up" data-target="1500">0</span></div>
-            <div className="hstat-label">Fault-Injected Scenarios</div>
-            <div className="hstat-sub">0 duplicate commits · 0 violations</div>
-          </div>
-          <div className="hstat">
-            <div className="hstat-num">+<span className="count-up" data-target="608">0</span>%</div>
-            <div className="hstat-label">p95 Regression Caught</div>
-            <div className="hstat-sub">AMD MI300X · vLLM · BLOCK</div>
-          </div>
-          <div className="hstat">
-            <div className="hstat-num"><span className="count-up" data-target="4">0</span> PRs</div>
-            <div className="hstat-label">Merged — Temporal SDK</div>
-            <div className="hstat-sub">+ 2 Azure SDK in review</div>
-          </div>
-          <div className="hstat">
-            <div className="hstat-num"><span className="count-up" data-target="100">0</span>k</div>
-            <div className="hstat-label">Records / Run</div>
-            <div className="hstat-sub">Production · Thales Group</div>
-          </div>
+        <h1 className="hero-name">Kriti Behl</h1>
+        <div className="hero-title">Reliability · Distributed Systems · AI Infrastructure</div>
+
+        <p className="hero-bio">
+          I build systems that catch failures before production —
+          distributed correctness tools, AI evaluation platforms, release safety gates,
+          and incident intelligence that turns operational noise into actionable decisions.
+        </p>
+
+        <div className="hero-proof-inline rev">
+          {[
+            { num: "4",      label: "Temporal Go SDK\nMerged PRs",     green: false },
+            { num: "1,500+", label: "Fault-injected\nscenarios",        green: false },
+            { num: "0.0%",   label: "Duplicate commits\n(Faultline)",   green: true  },
+            { num: "608%",   label: "p95 regression\nblocked",          green: false },
+            { num: "100k+",  label: "HSM records\nper run (Thales)",    green: false },
+            { num: "3.8",    label: "GPA · MS CS\nUniversity of Florida", green: false },
+          ].map(({ num, label, green }) => (
+            <div key={label} className={`hpi-card${green ? " hpi-green" : ""}`}>
+              <div className="hpi-num">{num}</div>
+              <div className="hpi-label">{label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="hero-btns">
+          <a href="#projects" className="btn btn-primary">View Work →</a>
+          <a href="https://agentgrid-seven.vercel.app/" target="_blank" rel="noopener noreferrer" className="btn btn-live">Live Demo ↗</a>
+          <a href="https://github.com/kritibehl" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">GitHub ↗</a>
+          <a href="https://linkedin.com/in/kriti-behl" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">LinkedIn ↗</a>
+          <a href="/resume.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">Resume ↗</a>
+          <a href="mailto:kriti0608@gmail.com" className="btn btn-ghost">Email</a>
         </div>
       </section>
 
-      {/* ROLE LANES */}
-      <section className="wrap rev" id="lanes">
-        <span className="section-label-mono">Role Mapping</span>
-        <div className="section-label">Where this work maps</div>
-        <div className="lanes">
+      {/* ── CREDIBILITY BAR ──────────────────────── */}
+      <div className="cred-strip rev">
+        {[
+          "Meta Production Engineering Fellow · MLH Fellowship 2026",
+          "4 merged Temporal Go SDK PRs · maintainer-reviewed",
+          "M.S. CS · University of Florida · GPA 3.8",
+          "FairEval Benchmark v1 · Zenodo technical report",
+          "Live deployed AI / ops APIs · Cloud Run",
+        ].map(item => (
+          <div key={item} className="cred-item">
+            <span className="cred-dot">◆</span>
+            <span>{item}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* ── WHY RECRUITERS REACH OUT ─────────────── */}
+      <section className="section rev" id="why">
+        <div className="sec-header">
+          <span className="sec-label">Signal</span>
+          <h2 className="sec-title">Why engineering teams reach out</h2>
+        </div>
+        <div className="signal-grid">
           {[
-            { icon:"⬡", title:"Backend & Platform",    tags:["Faultline","AutoOps","Thales"],                 desc:"Distributed execution · APIs · PostgreSQL · Kubernetes" },
-            { icon:"◎", title:"QA Automation",         tags:["AutoOps","KubePulse","Faultline"],               desc:"Regression detection · test automation · release validation" },
-            { icon:"◻", title:"Developer Tooling",     tags:["AutoOps","DetTrace","AgentGrid","Temporal OSS"], desc:"CI failure intelligence · dashboards · agentic workflows" },
-            { icon:"▣", title:"Reliability & SRE",     tags:["KubePulse","AutoOps","Faultline"],               desc:"SLO validation · rollout gates · observability" },
-            { icon:"◇", title:"AI Infrastructure",     tags:["FairEval","KubePulse AMD","AccelSim"],           desc:"Model evaluation · serving latency gates · AMD proof" },
-            { icon:"◈", title:"Systems & Performance", tags:["DetTrace","AccelSim","Faultline"],               desc:"Deterministic replay · bottleneck analysis · correctness" },
-          ].map((l) => (
+            { icon: "⬡", head: "External OSS validation", body: "4 merged PRs in Temporal Go SDK + 2 Azure SDK PRs under review — maintainer-reviewed changes in production-grade distributed workflow runtimes used by real engineering teams." },
+            { icon: "◇", head: "Measurable proof at every project", body: "0.0% duplicate commits. 1,500+ fault-injected scenarios. +608% p95 regression blocked. 100k HSM records/run. Numbers recruiters can screenshot." },
+            { icon: "▣", head: "Consistent engineering narrative", body: "Every project follows the same thesis: build systems that detect, explain, and block failures before they reach users. Correctness under failure — not just happy-path demos." },
+            { icon: "◈", head: "Programs that signal selection", body: "Meta Production Engineering Fellow (MLH 2026) · McKinsey Forward Participant · Rewriting the Code · University of Florida MS CS." },
+          ].map(s => (
+            <div key={s.head} className="signal-card">
+              <div className="signal-icon">{s.icon}</div>
+              <div className="signal-head">{s.head}</div>
+              <div className="signal-body">{s.body}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── OPEN SOURCE HIGH ─────────────────────── */}
+      <section className="section rev" id="oss">
+        <div className="sec-header">
+          <span className="sec-label">Open Source Impact</span>
+          <h2 className="sec-title">Temporal Go SDK · 4 Merged PRs</h2>
+          <p className="sec-sub">
+            Maintainer-reviewed contributions to a production workflow runtime used by real engineering teams.
+            These are not toy fixes — each addresses a correctness, goroutine-safety, or poller-behavior bug in live infrastructure.
+          </p>
+        </div>
+        <div className="oss-list">
+          {[
+            { repo:"Temporal", num:"#2298", href:"https://github.com/temporalio/sdk-go/pull/2298", title:"Fixed async future chaining where ready futures could still block callers", desc:"Resolved a bug where already-resolved futures could still cause callers to block, breaking async execution guarantees.", merged:true },
+            { repo:"Temporal", num:"#2212", href:"https://github.com/temporalio/sdk-go/pull/2212", title:"Fixed OnWorkflow mock to observe propagated context headers", desc:"Applied workflow context propagation to mock execution so OnWorkflow matchers see the same headers as real execution.", merged:true },
+            { repo:"Temporal", num:"#2200", href:"https://github.com/temporalio/sdk-go/pull/2200", title:"Fixed goroutine leak in child-workflow test environment", desc:"Child workflows could block on an unclosed doneChannel. Added idempotent closure with sync.Once and a regression test that fails without the fix.", merged:true },
+            { repo:"Temporal", num:"#2248", href:"https://github.com/temporalio/sdk-go/pull/2248", title:"Restored workflow poller type assignment in scalable task pollers", desc:"Wired poller type assignment into scalable task pollers, restoring sticky vs non-sticky distinction used by poller balancing.", merged:true },
+            { repo:"Azure",    num:"#26051", href:"https://github.com/Azure/azure-sdk-for-go/pull/26051", title:"Surfaced silently dropped transport errors in azcore retry policy", desc:"Composed realClose() failures with request errors using errors.Join so callers can inspect retry-path failures.", merged:false },
+            { repo:"Azure",    num:"#26106", href:"https://github.com/Azure/azure-sdk-for-go/pull/26106", title:"Implemented W3C Trace Context propagation in azcore HTTP tracing", desc:"Added traceparent and tracestate propagation via OpenTelemetry propagators and validated header injection with tests.", merged:false },
+          ].map(pr => (
+            <div key={pr.num} className={`oss-row ${pr.repo === "Azure" ? "azure" : "temporal"}`}>
+              <a href={pr.href} target="_blank" rel="noopener noreferrer" className={pr.repo === "Azure" ? "oss-badge oss-badge-az" : "oss-badge"}>{pr.repo} {pr.num}</a>
+              <div className="oss-content">
+                <div className="oss-title">{pr.title}</div>
+                <div className="oss-desc">{pr.desc}</div>
+              </div>
+              <span className={pr.merged ? "oss-merged" : "oss-review"}>{pr.merged ? "✓ Merged" : "In Review"}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── ROLE MAPPING ─────────────────────────── */}
+      <section className="section rev" id="lanes">
+        <div className="sec-header">
+          <span className="sec-label">Role Mapping</span>
+          <h2 className="sec-title">Where this work maps</h2>
+        </div>
+        <div className="lanes-grid">
+          {[
+            { icon:"◇", title:"AI Platform / Evaluation", tags:["FairEval","AgentGrid","Cheenti"],    desc:"RAI gates · RAG eval · model regression · GenAI ops · eval-gate infrastructure" },
+            { icon:"⬡", title:"Backend / Platform",       tags:["Faultline","AutoOps","Thales"],      desc:"Distributed correctness · APIs · PostgreSQL · Redis · workflow tooling" },
+            { icon:"▣", title:"Reliability / SRE",        tags:["KubePulse","AutoOps","Faultline"],   desc:"SLO validation · rollout gates · observability · incident intelligence" },
+            { icon:"◈", title:"Systems / Runtime",        tags:["DetTrace","AccelSim","Temporal OSS"], desc:"C++ · deterministic replay · bottleneck analysis · OSS correctness fixes" },
+          ].map(l => (
             <div className="lane-card" key={l.title}>
               <div className="lane-icon">{l.icon}</div>
               <div className="lane-title">{l.title}</div>
               <div className="lane-desc">{l.desc}</div>
-              <div className="lane-tags">{l.tags.map((t) => <span key={t} className="lane-tag">{t}</span>)}</div>
+              <div className="lane-tags">{l.tags.map(t => <span key={t} className="lane-tag">{t}</span>)}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* GENAI HERO PROJECT */}
-      <section className="wrap" id="genai-system">
-        <span className="section-label-mono">Live System</span>
-        <div className="section-label">Production GenAI Incident Intelligence System</div>
-        <p className="section-sub">Live Cloud Run system that detects unsafe AI outputs, blocks them with eval gates, and converts failures into AutoOps incident intelligence.</p>
+      {/* ── PROJECTS ─────────────────────────────── */}
+      <section className="section" id="projects">
+        <div className="sec-header rev">
+          <span className="sec-label">01 · Systems Lab</span>
+          <h2 className="sec-title">Reliability Systems Lab</h2>
+          <p className="sec-sub">
+            Seven production-style systems proving AI evaluation, agentic ops, release safety, distributed correctness, replay debugging, and runtime performance.
+            Each card shows: problem → what I built → verified proof → what it demonstrates.
+          </p>
+        </div>
 
-        <div className="genai-hero-card rev">
-          <div className="genai-left">
-            <div className="why-matters" style={{marginTop:0, marginBottom:"20px"}}>
-              <span className="wm-label">Why this matters</span>
-              Without systems like this, incorrect or incomplete AI outputs can reach users, causing silent failures.
-            </div>
+        <div className="role-tabs rev">
+          {tabs.map(t => (
+            <button key={t.id} className={`role-tab${activeTab === t.id ? " active" : ""}`} onClick={() => setActiveTab(t.id)}>{t.label}</button>
+          ))}
+        </div>
 
-            <div className="genai-proof">
-              <div className="gp-label">Live proof</div>
-              <div className="gp-grid">
-                <div className="gp-item"><span className="gp-val">25</span><span className="gp-key">validation runs</span></div>
-                <div className="gp-item"><span className="gp-val green">9</span><span className="gp-key">ship decisions</span></div>
-                <div className="gp-item"><span className="gp-val yellow">10</span><span className="gp-key">hold decisions</span></div>
-                <div className="gp-item"><span className="gp-val red">6</span><span className="gp-key">escalate decisions</span></div>
-                <div className="gp-item"><span className="gp-val">258ms</span><span className="gp-key">p95 eval latency</span></div>
-                <div className="gp-item"><span className="gp-val green">0.88</span><span className="gp-key">tool-call success</span></div>
-                <div className="gp-item"><span className="gp-val green">0</span><span className="gp-key">unsafe shipments</span></div>
-                <div className="gp-item"><span className="gp-val green">✓</span><span className="gp-key">Cloud Run live</span></div>
+        <div className="proj-list-full">
+          {visible.map((p) => (
+            <div key={p.id} className="proj-card-full rev">
+              <div className="pcf-top">
+                <div className="pcf-eye">{p.eye}</div>
+                <div className="pcf-tags">{p.tags.map(t => <span key={t} className="pcf-tag">{t}</span>)}</div>
               </div>
-            </div>
+              <div className="pcf-impact">{p.impact}</div>
+              <h3 className="pcf-title">{p.title}</h3>
 
-            <div className="example-output">
-              <div className="eo-label">Example output</div>
-              <div className="eo-body">
-                <div className="eo-row"><span className="eo-key">Decision</span><span className="badge-block">HOLD</span></div>
-                <div className="eo-row"><span className="eo-key">Reason</span><span className="eo-val">missing_context</span></div>
-                <div className="eo-divider">AutoOps Output</div>
-                <div className="eo-bullets">
-                  <div>→ PM summary: Missing deployment context</div>
-                  <div>→ Engineering bug: Missing dependency metadata</div>
-                  <div>→ Support action: Request logs and retry deployment</div>
+              <div className="pcb">
+                <div className="pcb-row"><span className="pcb-l">Problem</span><span className="pcb-t">{p.problem}</span></div>
+                <div className="pcb-row"><span className="pcb-l">Built</span><span className="pcb-t">{p.built}</span></div>
+                <div className="pcb-row"><span className="pcb-l">Verified</span><span className="pcb-res">{p.verified}</span></div>
+              </div>
+
+              <div className="pcf-proves"><span className="pcf-proves-label">What this proves · </span>{p.proves}</div>
+
+              <div className="pcf-bottom">
+                <div className="pcf-chips">
+                  {(p.chips as [string, boolean][]).map(([label, green]) => (
+                    <span key={label} className={`chip${green ? " chip-g" : ""}`}>{label}</span>
+                  ))}
+                </div>
+                <div className="pcf-links">
+                  {(p.links as [string, string][]).map(([label, href]) => (
+                    <a key={href} href={href} target="_blank" rel="noopener noreferrer">{label}</a>
+                  ))}
                 </div>
               </div>
-            </div>
-
-            <div className="genai-btns">
-              <a href="https://agentgrid-seven.vercel.app/" target="_blank" rel="noopener noreferrer" className="btn-pri">Live Demo ↗</a>
-              <a href="https://github.com/kritibehl/agentgrid" target="_blank" rel="noopener noreferrer" className="btn-sec">AgentGrid GitHub ↗</a>
-              <a href="https://github.com/kritibehl/AutoOps-Insight" target="_blank" rel="noopener noreferrer" className="btn-sec">AutoOps GitHub ↗</a>
-            </div>
-          </div>
-
-          <div className="genai-right">
-            <div className="sys-flow">
-              <div className="sf-label">System flow</div>
-              {[
-                { step: "Query",                      note: "user / support input" },
-                { step: "RAG over docs/logs/runbooks", note: "context retrieval" },
-                { step: "LangGraph workflow",          note: "stateful multi-step" },
-                { step: "MCP-style tool execution",    note: "structured tool calls" },
-                { step: "Eval Gate",                   note: "safety + quality check", highlight: true },
-                { step: "ship / hold / escalate",      note: "decision output", decision: true },
-                { step: "AutoOps",                     note: "incident ingestion" },
-                { step: "Incident + Action",            note: "structured output", final: true },
-              ].map((s, i, arr) => (
-                <div key={s.step} className="sf-item">
-                  <div className={`sf-step${s.highlight ? " sf-gate" : s.decision ? " sf-decision" : s.final ? " sf-final" : ""}`}>
-                    <span className="sf-name">{s.step}</span>
-                    <span className="sf-note">{s.note}</span>
-                  </div>
-                  {i < arr.length - 1 && <div className="sf-arr">↓</div>}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* PROJECTS */}
-      <section className="wrap" id="projects">
-        <span className="section-label-mono">01</span>
-        <div className="section-label">Featured Technical Work</div>
-
-        {/* AutoOps */}
-        <div className="feat-card rev">
-          <div className="feat-left">
-            <div className="feat-kicker">★ AutoOps-Insight · Developer Tooling · QA Automation · SRE</div>
-            <div className="proj-impact">Turns noisy CI failures into release-blocking decisions with root cause and confidence scoring.</div>
-            <h2 className="feat-title">CI Failure Intelligence Dashboard</h2>
-            <p className="feat-desc">Detected recurring CI failures and blocked unreliable releases — grouped failures into incident families and generated hold/ship decisions with 0.91 confidence.</p>
-            <ul className="feat-list">
-              <li>Full-stack platform (FastAPI + React/Vite): ingests CI logs → classifies failure families → fingerprints recurrence → generates <code>hold_release</code> / <code>investigate</code> with confidence scores</li>
-              <li>Signature-based recurrence tracking across 3 repos — 60% release-blocking decisions; Parquet exports with 17-field schema for downstream analysis</li>
-              <li>Fleet-level metrics: noisy services ranking, recurrence heatmaps, root-cause distribution via warehouse-style SQL models</li>
-            </ul>
-            <div className="why-matters"><span className="wm-label">Why this matters</span>On-call engineers get structured triage instead of raw logs — faster decisions, less tribal knowledge required.</div>
-            <div className="feat-chips">
-              <span className="chip-green">60% release-blocking decisions</span>
-              <span className="chip-green">0.91 confidence</span>
-              <span className="chip">FastAPI · React · PostgreSQL · Kafka</span>
-            </div>
-            <div className="feat-links"><a href="https://github.com/kritibehl/AutoOps-Insight" target="_blank" rel="noopener noreferrer">↗ GitHub</a></div>
-          </div>
-          <div className="feat-right">
-            <div className="stat-block">
-              <div className="sb-row">
-                <div className="sb-item"><div className="sb-val green">5</div><div className="sb-key">incidents analyzed</div></div>
-                <div className="sb-item"><div className="sb-val green">3</div><div className="sb-key">hold-release decisions</div></div>
-              </div>
-              <div className="sb-row">
-                <div className="sb-item"><div className="sb-val green">0.91</div><div className="sb-key">dns_failure confidence</div></div>
-                <div className="sb-item"><div className="sb-val green">0.91</div><div className="sb-key">latency_spike confidence</div></div>
-              </div>
-              <div className="incident-flow">
-                <div className="if-step">Raw log</div><div className="if-arr">→</div>
-                <div className="if-step">Classify</div><div className="if-arr">→</div>
-                <div className="if-step">Fingerprint</div><div className="if-arr">→</div>
-                <div className="if-step if-decision">HOLD / SHIP</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Faultline */}
-        <div className="feat-card rev">
-          <div className="feat-left">
-            <div className="feat-kicker">★ Faultline · Backend · Platform · Distributed Systems · SRE</div>
-            <div className="proj-impact">Prevented duplicate writes under distributed failures — 0.0% duplicate commits vs 1.0–2.5% naive baseline.</div>
-            <h2 className="feat-title">Crash-Safe Distributed Job Execution</h2>
-            <p className="feat-desc">Stale workers commit after losing ownership. Lease expiry stops new claims — it doesn&apos;t stop an old worker from writing late. Fencing tokens fix the write boundary at the database, not the application.</p>
-            <div className="pipeline">
-              {[["blue","Worker Claims","SKIP LOCKED"],["blue","Fencing Token","unique constraint"],["yellow","Fault Injected","crash / partition"],["green","Stale Rejected","at DB boundary"],["green","0 Duplicates","across all runs"]].map(([color,label,sub],i,arr) => (
-                <span key={label} style={{display:"flex",alignItems:"center",gap:"4px"}}>
-                  <span className="pl-step"><span className={`pl-dot pl-${color}`}/><span className="pl-label">{label}</span><span className="pl-sub">{sub}</span></span>
-                  {i < arr.length-1 && <span className="pl-arr">→</span>}
-                </span>
-              ))}
-            </div>
-            <ul className="feat-list">
-              <li>1,500+ injected scenarios: crashes, lease takeovers, retry storms, partial writes — 0 invariant violations</li>
-              <li>Coordination overhead measured: 46.5% of runtime in worst case, broken down by claim / poll / reconcile / retry</li>
-            </ul>
-            <div className="why-matters"><span className="wm-label">Why this matters</span>Double-commits show up as billing errors, inventory miscounts, or audit failures. Fencing tokens make them physically impossible at the DB boundary.</div>
-            <div className="feat-chips">
-              <span className="chip-green">0.0% duplicates</span>
-              <span className="chip-green">1,500+ scenarios</span>
-              <span className="chip-green">0 invariant violations</span>
-              <span className="chip">Python · PostgreSQL · Prometheus</span>
-            </div>
-            <div className="feat-links"><a href="https://github.com/kritibehl/faultline" target="_blank" rel="noopener noreferrer">↗ GitHub</a></div>
-          </div>
-          <div className="feat-right">
-            <div className="stat-block">
-              <div className="compare-table">
-                <div className="ct-head"><span>Fault Rate</span><span>Naive Queue</span><span>Faultline</span></div>
-                <div className="ct-row"><span>5%</span><span className="ct-bad">1.0% dupes</span><span className="ct-good">0.0% ✓</span></div>
-                <div className="ct-row"><span>10%</span><span className="ct-bad">2.5% dupes</span><span className="ct-good">0.0% ✓</span></div>
-                <div className="ct-row"><span>20%</span><span className="ct-bad">2.5% dupes</span><span className="ct-good">0.0% ✓</span></div>
-              </div>
-              <div className="sb-row" style={{marginTop:"16px"}}>
-                <div className="sb-item"><div className="sb-val green">1,500+</div><div className="sb-key">failure scenarios</div></div>
-                <div className="sb-item"><div className="sb-val green">0</div><div className="sb-key">invariant violations</div></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 2x2 grid */}
-        <div className="proj-grid">
-
-          <div className="proj-card rev">
-            <div className="proj-kicker">KubePulse · Reliability · AI Infra</div>
-            <div className="proj-impact-sm">Blocked unsafe deployments even when Kubernetes health checks stayed green.</div>
-            <h3 className="proj-title">Release Safety Validation</h3>
-            <div className="amd-block">
-              <div className="amd-title">AMD MI300X — Serving Regression</div>
-              <div className="amd-rows">
-                <div className="amd-row"><span>Baseline p95</span><span className="amd-v">200 ms</span></div>
-                <div className="amd-row"><span>Burst p95</span><span className="amd-v red">1,422 ms</span></div>
-                <div className="amd-row"><span>Delta</span><span className="amd-v red">+608%</span></div>
-                <div className="amd-row"><span>Decision</span><span className="badge-block">BLOCK</span></div>
-              </div>
-            </div>
-            <ul className="proj-list">
-              <li>+333% p95 latency drift while probes stayed green — error budget 0.0%, <code>safe_to_operate=false</code></li>
-              <li>Validation data pipeline: structured JSON artifacts per scenario run, CI/CD integrable</li>
-            </ul>
-            <div className="why-matters"><span className="wm-label">Why this matters</span>Prevents the class of incidents where the system looks healthy but is serving degraded traffic.</div>
-            <div className="proj-chips">
-              <span className="chip-green">+608% AMD blocked</span>
-              <span className="chip-green">+333% p95 caught</span>
-              <span className="chip">Python · Kubernetes · Terraform</span>
-            </div>
-            <div className="proj-links"><a href="https://github.com/kritibehl/KubePulse" target="_blank" rel="noopener noreferrer">↗ GitHub</a></div>
-          </div>
-
-          <div className="proj-card rev">
-            <div className="proj-kicker">DetTrace · Systems Debugging</div>
-            <div className="proj-impact-sm">Isolated the first incorrect event before any visible failure downstream.</div>
-            <h3 className="proj-title">First-Failure Isolation</h3>
-            <div className="trace-box">
-              <div className="trace-row"><span className="trace-label">EXPECTED</span><span className="trace-seq">gpio_edge → irq_assert → isr_enter → <strong className="tok-ok">gpio_ack</strong> → irq_clear</span></div>
-              <div className="trace-row" style={{marginTop:"6px"}}><span className="trace-label">ACTUAL</span><span className="trace-seq trace-bad">gpio_edge → irq_assert → isr_enter → <strong>gpio_edge</strong> → register_read</span></div>
-              <div className="trace-result">⚑ First divergence: index 3 · event ordering mismatch</div>
-            </div>
-            <ul className="proj-list">
-              <li>C++17 deterministic replay + Swift actor-isolated analysis — finds root cause before symptoms appear</li>
-              <li>Cross-incident learning at 1.0 confidence; control-loop: 3/4 scenarios diverged</li>
-            </ul>
-            <div className="why-matters"><span className="wm-label">Why this matters</span>Turns &quot;we couldn&apos;t reproduce it&quot; into a named, replayable divergence at an exact event index.</div>
-            <div className="proj-chips">
-              <span className="chip-green">Index 3 isolated</span>
-              <span className="chip-green">1.0 confidence</span>
-              <span className="chip">C++17 · Swift · CMake</span>
-            </div>
-            <div className="proj-links"><a href="https://github.com/kritibehl/dettrace" target="_blank" rel="noopener noreferrer">↗ GitHub</a></div>
-          </div>
-
-          <div className="proj-card rev">
-            <div className="proj-kicker">FairEval-Suite · AI Infra · ML Platform</div>
-            <div className="proj-impact-sm">Decides whether to ship a model update — catches regressions average score hides.</div>
-            <h3 className="proj-title">Regression Gating for GenAI</h3>
-            <div className="gate-rows">
-              <div className="gate-row"><span className="gate-label">Baseline</span><span className="gate-val">avg 0.794 · 100% pass</span><span className="badge-ship">SHIP</span></div>
-              <div className="gate-row"><span className="gate-label">Candidate</span><span className="gate-val">avg 0.000 · 0% pass</span><span className="badge-block">BLOCK</span></div>
-              <div className="gate-row"><span className="gate-label">Gemini Flash</span><span className="gate-val">avg 0.367 · 40% pass</span><span className="badge-block">BLOCK</span></div>
-              <div className="gate-row"><span className="gate-label">AMD serving</span><span className="gate-val">quality ✓ · p95 +47.1%</span><span className="badge-block">BLOCK</span></div>
-            </div>
-            <ul className="proj-list">
-              <li>Welch t-test + chi-squared at p=0.0 — structural regression, not noise</li>
-              <li>Hardware-aware gate: blocks on serving latency even when output quality holds</li>
-            </ul>
-            <div className="proj-chips">
-              <span className="chip-green">p=0.0 significance</span>
-              <span className="chip-green">AMD hardware gate</span>
-              <span className="chip">Python · FastAPI · PyTorch</span>
-            </div>
-            <div className="proj-links">
-              <a href="https://github.com/kritibehl/FairEval-Suite" target="_blank" rel="noopener noreferrer">↗ GitHub</a>
-              <a href="https://huggingface.co/spaces/kriti0608/FairEval-Suite" target="_blank" rel="noopener noreferrer">↗ Live Demo</a>
-            </div>
-          </div>
-
-          <div className="proj-card rev">
-            <div className="proj-kicker">AccelSim-Lite · Systems · Performance</div>
-            <div className="proj-impact-sm">Named which pipeline stage is the binding constraint — not just that a workload is slow.</div>
-            <h3 className="proj-title">Accelerator Bottleneck Simulator</h3>
-            <div className="accel-tbl">
-              <div className="at-head"><span>Workload</span><span>Throughput</span><span>Bottleneck</span></div>
-              <div className="at-row"><span>compute_heavy</span><span>0.33 ops/cy</span><span>WaitingDependency</span></div>
-              <div className="at-row at-hi"><span>memory_heavy</span><span>0.14 ops/cy</span><span>NoMemoryPort ← 2.4×</span></div>
-              <div className="at-row"><span>queue_pressure</span><span>0.32 ops/cy</span><span>Dep + ComputeUnit</span></div>
-            </div>
-            <ul className="proj-list"><li>Memory pressure: ~2.4× throughput degradation — named stall classification per cycle identifies the correct remediation</li></ul>
-            <div className="proj-chips">
-              <span className="chip-green">2.4× degradation quantified</span>
-              <span className="chip">C++17 · CMake</span>
-            </div>
-            <div className="proj-links"><a href="https://github.com/kritibehl/accelsim-lite" target="_blank" rel="noopener noreferrer">↗ GitHub</a></div>
-          </div>
-        </div>
-
-        {/* AgentGrid */}
-        <div className="proj-card rev" style={{marginTop:"18px"}}>
-          <div className="proj-kicker">AgentGrid · Agentic Systems · Developer Tooling</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"28px"}}>
-            <div>
-              <div className="proj-impact-sm">Converts unstructured operational documents into structured risk signals, owner routing, and action summaries.</div>
-              <h3 className="proj-title">LangGraph Document Triage Agent</h3>
-              <ul className="proj-list">
-                <li>LangGraph multi-step stateful workflow: classification → issue extraction → severity scoring → owner routing → action generation; deterministic graph nodes with typed shared state contract</li>
-                <li>Machine-readable JSON output; CLI-driven, pytest-backed, 3 scenarios 100% pass</li>
-              </ul>
-              <div className="why-matters"><span className="wm-label">Why this matters</span>Encodes triage logic that currently lives in engineers&apos; heads — consistent, testable, pipeline-integrable.</div>
-              <div className="proj-chips">
-                <span className="chip-green">3 scenarios · 100% pass</span>
-                <span className="chip">LangGraph · Python · CLI</span>
-              </div>
-              <div className="proj-links"><a href="https://github.com/kritibehl/agentgrid-demo" target="_blank" rel="noopener noreferrer">↗ GitHub</a></div>
-            </div>
-            <div style={{display:"flex",flexDirection:"column",justifyContent:"center"}}>
-              <div className="agent-flow">
-                {["RFI / Change Order / Safety Notice","Classification","Issue Extraction","Severity Scoring","Owner Routing","Action Summary JSON"].map((step,i,arr)=>(
-                  <div key={step} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"4px"}}>
-                    <div className={`af-step${i===0?" af-input":i===arr.length-1?" af-output":""}`}>{step}</div>
-                    {i<arr.length-1&&<div className="af-arr">↓</div>}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* OSS */}
-      <section className="wrap rev" id="oss">
-        <span className="section-label-mono">02</span>
-        <div className="section-label">Open Source Impact</div>
-        <p className="section-sub">4 merged PRs in the Temporal Go SDK + 2 Azure SDK PRs in review.</p>
-        <div className="oss-grid">
-          {[
-            { repo:"Temporal", num:"#2298", href:"https://github.com/temporalio/sdk-go/pull/2298", title:"Fixed async future chaining where ready futures could still block callers", desc:"Resolved a bug where already-resolved futures in the workflow test environment could still cause callers to block, breaking async execution guarantees.", merged:true },
-            { repo:"Temporal", num:"#2212", href:"https://github.com/temporalio/sdk-go/pull/2212", title:"Fixed OnWorkflow mock to observe propagated context headers", desc:"Applied workflow context propagation to mock execution so OnWorkflow matchers see the same headers as real workflow execution.", merged:true },
-            { repo:"Temporal", num:"#2200", href:"https://github.com/temporalio/sdk-go/pull/2200", title:"Fixed goroutine leak in child-workflow test environment", desc:"Child workflows could block on an unclosed doneChannel. Added idempotent closure with sync.Once and a regression test that fails without the fix.", merged:true },
-            { repo:"Temporal", num:"#2248", href:"https://github.com/temporalio/sdk-go/pull/2248", title:"Restored workflow poller type assignment in scalable task pollers", desc:"Wired poller type assignment into scalable task pollers, restoring sticky vs non-sticky distinction used by poller balancing.", merged:true },
-            { repo:"Azure", num:"#26051", href:"https://github.com/Azure/azure-sdk-for-go/pull/26051", title:"Surfaced silently dropped transport errors in azcore retry policy", desc:"Composed realClose() transport failures with request errors using errors.Join so callers can inspect retry-path failures instead of losing them silently.", merged:false },
-            { repo:"Azure", num:"#26106", href:"https://github.com/Azure/azure-sdk-for-go/pull/26106", title:"Implemented W3C Trace Context propagation in azcore HTTP tracing", desc:"Added traceparent and tracestate propagation via OpenTelemetry propagators and validated header injection with tests.", merged:false },
-          ].map((pr)=>(
-            <div key={pr.num} className={`oss-card ${pr.repo==="Azure"?"oss-azure-card":"oss-temporal-card"}`}>
-              <div className="oss-top">
-                <a href={pr.href} target="_blank" rel="noopener noreferrer" className={pr.repo==="Azure"?"oss-badge-azure":"oss-badge-temporal"}>{pr.repo} {pr.num}</a>
-                <span className={pr.merged?"oss-merged":"oss-review"}>{pr.merged?"Merged":"In Review"}</span>
-              </div>
-              <div className="oss-title">{pr.title}</div>
-              <div className="oss-desc">{pr.desc}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* SKILLS */}
-      <section className="wrap rev" id="skills">
-        <span className="section-label-mono">03</span>
-        <div className="section-label">Skills & Stack</div>
+      {/* ── SKILLS ───────────────────────────────── */}
+      <section className="section rev" id="skills">
+        <div className="sec-header">
+          <span className="sec-label">02 · Stack</span>
+          <h2 className="sec-title">Skills &amp; Stack</h2>
+        </div>
         <div className="skills-grid">
           {[
-            { cat:"Languages",               items:["Python","Go","C++17","Swift","TypeScript","Java","SQL"] },
-            { cat:"Systems & Correctness",   items:["Idempotency","Fencing tokens","Deterministic replay","State machines","Retries / backoff"] },
-            { cat:"Reliability Engineering", items:["Chaos testing","Regression gating","Release safety","Failure mode analysis","SLO tracking"] },
-            { cat:"Backend & APIs",          items:["FastAPI","REST","Pydantic","Node.js","React","Next.js"] },
-            { cat:"Observability",           items:["Prometheus","Grafana","OpenTelemetry","Structured logging"] },
-            { cat:"Infrastructure",          items:["PostgreSQL","SQLite","Docker","Kubernetes","GitHub Actions","Terraform"] },
-            { cat:"ML & Evaluation",         items:["PyTorch","HuggingFace Transformers","DistilBERT","Eval pipelines","Statistical gating"] },
-            { cat:"Education",               items:["MS CS · UF · GPA 3.8","Distributed Systems","Networks","Algorithms","Security","NLP"] },
-          ].map((s)=>(
+            { cat:"Languages",              items:["Python","Go","C++17","SQL","Java"] },
+            { cat:"AI Evaluation & GenAI",  items:["Responsible AI gates","RAG groundedness","Evaluator drift","Hallucination checks","Tool-call validation","Latency/cost governance"] },
+            { cat:"Backend & Platform",     items:["FastAPI","REST","OpenAPI","PostgreSQL","Redis","SQLAlchemy","Pydantic","Node.js","LangGraph"] },
+            { cat:"Reliability / SRE",      items:["Prometheus","Grafana","OpenTelemetry","Jaeger","Loki","k6","Release gates","SLO validation"] },
+            { cat:"Cloud / Infra",          items:["Docker","GitHub Actions","Cloud Run","Kubernetes","Helm","Terraform","Chaos testing"] },
+            { cat:"Systems / Performance",  items:["C++17","CMake","GoogleTest","Linux","Deterministic replay","Cache/locality","Runtime validation"] },
+            { cat:"ML",                     items:["PyTorch","HuggingFace","Eval pipelines","Statistical gating"] },
+            { cat:"Education",              items:["MS CS · UF · GPA 3.8","Distributed Systems","Networks","Algorithms","Security","NLP"] },
+          ].map(s => (
             <div key={s.cat} className="skill-card">
-              <div className="skill-cat">{s.cat}</div>
-              <div className="skill-items">{s.items.map((i)=><span key={i} className="skill-chip">{i}</span>)}</div>
+              <div className="sk-cat">{s.cat}</div>
+              <div className="sk-chips">{s.items.map(i => <span key={i} className="sk-chip">{i}</span>)}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* EXPERIENCE */}
-      <section className="wrap rev" id="experience">
-        <span className="section-label-mono">04</span>
-        <div className="section-label">Experience</div>
+      {/* ── EXPERIENCE ───────────────────────────── */}
+      <section className="section rev" id="experience">
+        <div className="sec-header">
+          <span className="sec-label">03 · Experience</span>
+          <h2 className="sec-title">Experience</h2>
+        </div>
         <div className="exp-list">
           {[
-            { role:"Software Engineer", dates:"Feb 2026 – Present", company:"Cheenti Digital LLC · Remote", current:true, bullets:["Built 4-phase internal platform unifying analytics, search, campaign, and website-performance workflows into one reporting and monitoring system","Developed automated diagnostics covering 5+ technical issue classes: crawlability, broken links, redirect chains, metadata gaps, sitemap issues","Built monitoring workflows across 4 performance dimensions to surface regressions earlier than periodic reporting"] },
-            { role:"DevSecOps Intern", dates:"Jun 2025 – Aug 2025", company:"Thales Group · Plantation, FL", current:false, bullets:["Built Python backend processing ~100k state-transition records per run; computed per-resource utilization, queue depth, and efficiency across HSM resource pools (payShield 10K, Luna HSM)","Replaced frontend JavaScript state computation with deterministic backend state engine; REST endpoints exposing real-time HSM state, queue depth, idle/recovery counts, and time-in-state from PostgreSQL event logs","Implemented configurable time-window efficiency analysis (24h–N days) via delta-based evaluation; exposed via REST APIs","Built internal dashboard for DevOps/engineering teams showing per-resource-type efficiency charts across HSM states: active, idle, queued, recovery, validation, error"] },
-            { role:"Graduate Assistant", dates:"Dec 2024 – Dec 2025", company:"University of Florida · Gainesville, FL", current:false, bullets:["Operated and improved production scheduling system used by ~600–800 weekly users; diagnosed live failures and restored correctness during active usage"] },
-          ].map((e)=>(
-            <div key={e.role+e.company} className="exp-card">
-              <div className="exp-head">
+            {
+              role: "Software Engineer", dates: "Feb 2026 – Present",
+              co: "Cheenti Digital LLC · Remote", current: true,
+              bullets: [
+                "Built FastAPI/Redis-backed workflow tooling processing 3,000+ weekly reporting events across AI-assisted SEO and analytics workflows, covering 5 signal types and 8 recurring issue categories",
+                "Developed AI output validation with 20+ Pydantic/JSON Schema checks, audit logs, retry-state tracking, approval-status handling, and human-review gates",
+                "Instrumented reporting workflows with structured logs, validation traces, and operational review artifacts",
+              ],
+            },
+            {
+              role: "DevSecOps Intern", dates: "Jun – Aug 2025",
+              co: "Thales Group · Plantation, FL", current: false,
+              bullets: [
+                "Built Python backend processing ~100k state-transition records per run; computed per-resource utilization, queue depth, and efficiency across HSM resource pools (payShield 10K, Luna HSM)",
+                "Replaced frontend JavaScript state computation with deterministic backend state engine; REST endpoints exposing real-time HSM state, queue depth, idle/recovery counts from PostgreSQL event logs",
+                "Implemented configurable time-window efficiency analysis (24h–N days) via delta-based evaluation; built internal dashboard for DevOps teams",
+              ],
+            },
+            {
+              role: "Graduate Assistant", dates: "Dec 2024 – Dec 2025",
+              co: "University of Florida · Gainesville, FL", current: false,
+              bullets: [
+                "Operated and improved production scheduling system used by ~600–800 weekly users; diagnosed live failures and restored correctness during active usage",
+              ],
+            },
+          ].map(e => (
+            <div key={e.role + e.co} className={`exp-card${e.current ? " current" : ""}`}>
+              <div className="exp-top">
                 <div>
-                  <div className="exp-role">{e.role}{e.current&&<span className="exp-current">Current</span>}</div>
-                  <div className="exp-company">{e.company}</div>
+                  <div className="exp-role">
+                    {e.role}
+                    {e.current && <span className="exp-badge">Current</span>}
+                  </div>
+                  <div className="exp-co">{e.co}</div>
                 </div>
                 <div className="exp-dates">{e.dates}</div>
               </div>
-              <ul className="exp-bullets">{e.bullets.map((b)=><li key={b}>{b}</li>)}</ul>
+              <ul className="exp-buls">{e.bullets.map(b => <li key={b}>{b}</li>)}</ul>
             </div>
           ))}
         </div>
       </section>
 
-      {/* WRITING */}
-      <section className="wrap rev" id="writing">
-        <span className="section-label-mono">05</span>
-        <div className="section-label">Selected Writing</div>
+      {/* ── PROGRAMS & COMMUNITIES ───────────────── */}
+      <section className="section rev" id="programs">
+        <div className="sec-header">
+          <span className="sec-label">04 · Programs</span>
+          <h2 className="sec-title">Programs &amp; Communities</h2>
+        </div>
+        <div className="programs-grid">
+          {[
+            {
+              org: "Meta / MLH Fellowship",
+              title: "Meta Production Engineering Fellowship",
+              detail: "SRE Track · 2026",
+              desc: "Production infrastructure, Linux reliability engineering, and platform operations — highly selective fellowship.",
+              accent: "#1877f2",
+            },
+            {
+              org: "University of Florida",
+              title: "M.S. Computer Science",
+              detail: "GPA 3.8 / 4.0 · Graduating Dec 2025",
+              desc: "Distributed Systems · Networks · Algorithms · Security · NLP",
+              accent: "#3b82f6",
+            },
+            {
+              org: "McKinsey Forward",
+              title: "McKinsey Forward Program",
+              detail: "Selected Participant · 2026",
+              desc: "Business and leadership development program for high-potential early-career professionals.",
+              accent: "#22c55e",
+            },
+            {
+              org: "Rewriting the Code",
+              title: "Rewriting the Code",
+              detail: "Women in Tech Community",
+              desc: "Selective tech community supporting women in software engineering with mentorship, events, and recruiting pipelines.",
+              accent: "#a78bfa",
+            },
+          ].map(p => (
+            <div key={p.title} className="program-card" style={{ "--prog-accent": p.accent } as React.CSSProperties}>
+              <div className="prog-org">{p.org}</div>
+              <div className="prog-title">{p.title}</div>
+              <div className="prog-detail">{p.detail}</div>
+              <div className="prog-desc">{p.desc}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── ENGINEERING PHILOSOPHY ───────────────── */}
+      <section className="section rev" id="philosophy">
+        <div className="philosophy-block">
+          <div className="phil-label">Engineering Philosophy</div>
+          <blockquote className="phil-quote">
+            I focus on systems correctness under failure.
+            Most software is tested on the happy path — my work concentrates on the paths that fail:
+            retries, stale state, silent regressions, rollout mistakes, and unsafe AI outputs.
+            I build platforms that make those failures observable, reproducible, and preventable.
+          </blockquote>
+          <div className="phil-name">— Kriti Behl</div>
+        </div>
+      </section>
+
+      {/* ── WRITING ──────────────────────────────── */}
+      <section className="section rev" id="writing">
+        <div className="sec-header">
+          <span className="sec-label">05 · Engineering Writing</span>
+          <h2 className="sec-title">Selected Writing</h2>
+        </div>
         <div className="writing-list">
           {[
-            { href:"https://medium.com/@kriti0608/how-i-built-a-distributed-job-queue-that-stays-correct-under-crashes-races-and-network-faults-48bc50eec723", title:"How I Built a Distributed Job Queue That Stays Correct Under Crashes, Races, and Network Faults", sub:"A deep dive into exactly-once execution semantics, fencing tokens, and validating correctness under real failure conditions." },
-            { href:"https://medium.com/@kriti0608/i-thought-i-built-observability-then-an-incident-proved-i-didnt-9b749e0d4ff3", title:"I Thought I Built Observability. Then an Incident Proved I Didn't.", sub:"What a production-style incident revealed about the gap between green dashboards and real system behavior." },
-            { href:"https://medium.com/@kriti0608/detecting-silent-regressions-in-genai-systems-at-scale-039ec03db1e4", title:"Detecting Silent Regressions in GenAI Systems at Scale", sub:"How I treat ML evaluation like reliability engineering: stable metrics, reproducible artifacts, and CI release gates." },
-          ].map((w)=>(
-            <a key={w.href} href={w.href} target="_blank" rel="noopener noreferrer" className="writing-card">
-              <div><div className="writing-title">{w.title}</div><div className="writing-sub">{w.sub}</div></div>
-              <span className="writing-arr">→</span>
+            {
+              href: "https://medium.com/@kriti0608/how-i-built-a-distributed-job-queue-that-stays-correct-under-crashes-races-and-network-faults-48bc50eec723",
+              title: "How I Built a Distributed Job Queue That Stays Correct Under Crashes, Races, and Network Faults",
+              sub: "Exactly-once execution semantics, fencing tokens, and validating correctness under real failure conditions.",
+              topic: "Distributed Systems",
+            },
+            {
+              href: "https://medium.com/@kriti0608/i-thought-i-built-observability-then-an-incident-proved-i-didnt-9b749e0d4ff3",
+              title: "I Thought I Built Observability. Then an Incident Proved I Didn't.",
+              sub: "What a production-style incident revealed about the gap between green dashboards and real system behavior.",
+              topic: "SRE / Observability",
+            },
+            {
+              href: "https://medium.com/@kriti0608/detecting-silent-regressions-in-genai-systems-at-scale-039ec03db1e4",
+              title: "Detecting Silent Regressions in GenAI Systems at Scale",
+              sub: "Treating ML evaluation like reliability engineering: stable metrics, reproducible artifacts, CI release gates.",
+              topic: "AI Evaluation",
+            },
+          ].map(w => (
+            <a key={w.href} href={w.href} target="_blank" rel="noopener noreferrer" className="writing-row">
+              <div className="wr-topic">{w.topic}</div>
+              <div className="wr-title">{w.title}</div>
+              <div className="wr-sub">{w.sub}</div>
+              <span className="wr-arr">→</span>
             </a>
           ))}
         </div>
       </section>
 
-      {/* CONTACT */}
-      <section className="wrap rev" id="contact">
+      {/* ── CONTACT ──────────────────────────────── */}
+      <section className="section rev" id="contact">
         <div className="contact-block">
-          <div className="contact-left">
-            <div className="contact-head">Let&apos;s work together.</div>
-            <p className="contact-sub">Looking for backend, platform, QA automation, or reliability engineering roles. I build systems that prevent failures before production.</p>
-            <p className="contact-note">New grad · Dec 2025 · Open to relocation</p>
+          <div>
+            <div className="cb-head">Let&apos;s work together.</div>
+            <p className="cb-sub">
+              Looking for AI evaluation, backend/platform, SRE, GenAI operations, systems tooling, and reliability engineering roles.
+              I build systems that detect, explain, and block failures before they reach users.
+            </p>
+            <p className="cb-note">New grad · Dec 2025 · Open to relocation · US work authorized</p>
           </div>
-          <div className="contact-right">
-            <a href="mailto:kriti0608@gmail.com" className="btn-pri contact-cta">✉ kriti0608@gmail.com</a>
-            <div className="contact-links">
-              {[["https://linkedin.com/in/kriti-behl","LinkedIn ↗"],["https://github.com/kritibehl","GitHub ↗"],["https://medium.com/@kriti0608","Medium ↗"],["https://huggingface.co/kriti0608","HuggingFace ↗"]].map(([h,l])=>(
-                <a key={h} href={h} target="_blank" rel="noopener noreferrer" className="btn-sec">{l}</a>
+          <div className="cb-right">
+            <a href="mailto:kriti0608@gmail.com" className="btn btn-primary">✉ kriti0608@gmail.com</a>
+            <div className="cb-links">
+              {[
+                ["https://linkedin.com/in/kriti-behl", "LinkedIn ↗"],
+                ["https://github.com/kritibehl",        "GitHub ↗"],
+                ["https://medium.com/@kriti0608",        "Medium ↗"],
+                ["https://huggingface.co/kriti0608",     "HuggingFace ↗"],
+              ].map(([h, l]) => (
+                <a key={h} href={h} target="_blank" rel="noopener noreferrer" className="btn btn-ghost">{l}</a>
               ))}
             </div>
           </div>
         </div>
       </section>
+
+      <div className="footer-note rev">
+        Logos / program names shown for experience, programs, open-source ecosystems, and hosted project platforms.
+      </div>
 
     </div>
   );
