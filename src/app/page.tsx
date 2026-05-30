@@ -834,9 +834,7 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="footer-note rev">
-        Logos / program names shown for experience, programs, open-source ecosystems, and hosted project platforms.
-      </div>
+     
 
     </div>
   );
