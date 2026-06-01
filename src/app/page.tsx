@@ -330,7 +330,7 @@ export default function Home() {
           { label: "Probes",    sub: kubePhase >= 1 ? "GREEN ✓" : "GREEN ✓", x: 155, c: "#22c55e" },
           { label: "p95 SLO",  sub: kubePhase >= 1 ? "+333% BREACH" : "nominal", x: 290, c: kubePhase >= 1 ? "#ef4444" : "#22c55e" },
           { label: "Deps",     sub: kubePhase >= 1 ? "DEGRADED" : "healthy",    x: 425, c: kubePhase >= 1 ? "#f59e0b" : "#22c55e" },
-          { label: "Decision", sub: kubePhase === 2 ? "BLOCK" : kubePhase === 1 ? "EVALUATING" : "SHIP", x: 560, c: kubePhase === 2 ? "#ef4444" : kubePhase === 1 ? "#f59e0b" : "#22c55e" },
+          { label: "Decision", sub: kubePhase >= 1 ? "BLOCK" : "SHIP", x: 560, c: kubePhase >= 1 ? "#ef4444" : "#22c55e" },
         ].map((s, i) => (
           <g key={s.label}>
             <rect x={s.x} y="104" width="110" height="42" rx="6"
@@ -574,11 +574,12 @@ export default function Home() {
       <nav className="top-nav rev">
         <span className="nav-logo">KB</span>
         <div className="nav-links">
-          <a href="#proof"    className="nav-link">Proof</a>
-          <a href="#oss"      className="nav-link">Open Source</a>
-          <a href="#projects" className="nav-link">Projects</a>
+          <a href="#proof"      className="nav-link">Proof</a>
+          <a href="#oss"        className="nav-link">Open Source</a>
+          <a href="#projects"   className="nav-link">Projects</a>
           <a href="#experience" className="nav-link">Experience</a>
-          <a href="/resume.pdf" target="_blank" rel="noopener noreferrer" className="nav-link nav-resume">Resume ↗</a>
+          <a href="#writing"    className="nav-link">Writing</a>
+          <a href="#contact"    className="nav-link">Contact</a>
         </div>
       </nav>
 
@@ -590,7 +591,7 @@ export default function Home() {
           <div className="hero-left">
             <div className="hero-eyebrow">
               <span className="hero-dot" />
-              Open to roles · New grad Dec 2025 · US work authorized
+              Open to roles · New grad Dec 2025 · Open to relocation
             </div>
 
             <h1 className="hero-headline">
@@ -772,25 +773,23 @@ export default function Home() {
               role: "Software Engineer", dates: "Feb 2026 – Present",
               co: "Cheenti Digital LLC · Remote", current: true,
               bullets: [
-                "Built FastAPI/Redis-backed workflow tooling processing 3,000+ weekly reporting events across AI-assisted SEO and analytics workflows, covering 5 signal types and 8 recurring issue categories",
-                "Developed AI output validation with 20+ Pydantic/JSON Schema checks, audit logs, retry-state tracking, approval-status handling, and human-review gates",
-                "Instrumented reporting workflows with structured logs, validation traces, and operational review artifacts",
+                "Built FastAPI/Redis workflow tooling processing 3,000+ weekly reporting events across 5 signal types and 8 recurring issue categories.",
+                "Developed AI output validation with 20+ Pydantic/JSON Schema checks, audit logs, retry tracking, and human-review gates.",
               ],
             },
             {
               role: "DevSecOps Intern", dates: "Jun – Aug 2025",
               co: "Thales Group · Plantation, FL", current: false,
               bullets: [
-                "Built Python backend processing ~100k state-transition records per run; computed per-resource utilization, queue depth, and efficiency across HSM resource pools (payShield 10K, Luna HSM)",
-                "Replaced frontend JavaScript state computation with deterministic backend state engine; REST endpoints exposing real-time HSM state, queue depth, idle/recovery counts from PostgreSQL event logs",
-                "Implemented configurable time-window efficiency analysis (24h–N days) via delta-based evaluation; built internal dashboard for DevOps teams",
+                "Built Python/PostgreSQL backend processing ~100k HSM state-transition records per run across payShield 10K and Luna HSM resource pools.",
+                "Replaced frontend state computation with deterministic backend logic exposing queue depth, utilization, idle/recovery counts, and efficiency metrics.",
               ],
             },
             {
               role: "Graduate Assistant", dates: "Dec 2024 – Dec 2025",
               co: "University of Florida · Gainesville, FL", current: false,
               bullets: [
-                "Operated and improved production scheduling system used by ~600–800 weekly users; diagnosed live failures and restored correctness during active usage",
+                "Operated a scheduling system used by ~600–800 weekly users; diagnosed live failures and restored correctness during active usage.",
               ],
             },
           ].map(e => (
@@ -927,6 +926,27 @@ export default function Home() {
             <div className="proj-group-label rev" style={{marginTop:"40px"}}>Supporting Systems</div>
             <div className="proj-support-grid">
               {visible.filter(p => !p.flagship).map(p => (
+                p.id === "accelsim" ? (
+                  <div key={p.id} className="proj-support proj-support-wide rev">
+                    <div className="accelsim-two-col">
+                      <div className="accelsim-visual">{visuals[p.visual]}</div>
+                      <div className="accelsim-info">
+                        <h3 className="ps-title">{p.title}</h3>
+                        <div className="ps-tagline">{p.tagline}</div>
+                        <div className="accelsim-pills">
+                          <span className="accel-pill accel-red">25.65× pointer slowdown</span>
+                          <span className="accel-pill accel-amber">2.4× throughput degradation</span>
+                          <span className="accel-pill accel-green">PASS regression gate</span>
+                        </div>
+                        <div className="pf-links" style={{marginTop:"16px"}}>
+                          {(p.links as [string, string][]).map(([label, href]) => (
+                            <a key={href} href={href} target="_blank" rel="noopener noreferrer" className="pcf-link-btn">{label}</a>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
                 <div key={p.id} className="proj-support rev">
                   <div className="proj-visual-sm">{visuals[p.visual]}</div>
                   <h3 className="ps-title">{p.title}</h3>
@@ -949,6 +969,7 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
+                )
               ))}
             </div>
           </>
@@ -1065,7 +1086,7 @@ export default function Home() {
             I build systems that fail loudly, recover safely,<br/>
             and block unsafe releases before users are impacted.
           </h2>
-          <p className="cb-sub">New grad · Dec 2025 · Open to relocation · US work authorized</p>
+          <p className="cb-sub">New grad · Dec 2025 · Open to relocation</p>
 
           <div className="cb-roles">
             <div className="cb-roles-label">Currently interviewing for</div>
@@ -1078,7 +1099,7 @@ export default function Home() {
 
           <div className="cb-btns">
             <a href="https://github.com/kritibehl" target="_blank" rel="noopener noreferrer" className="btn btn-primary">View GitHub ↗</a>
-            <a href="/resume.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">Resume ↗</a>
+            <a href="https://www.linkedin.com/in/kriti-behl" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">LinkedIn ↗</a>
             <a href="mailto:kriti0608@gmail.com" className="btn btn-ghost">Contact Me</a>
           </div>
           <div className="cb-links-row">
