@@ -5,6 +5,8 @@ export default function Home() {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [activeFilter, setActiveFilter] = useState("all");
   const [consoleLine, setConsoleLine] = useState(0);
+  const [kubePhase, setKubePhase] = useState(0); // 0=green 1=spike 2=block
+  const [statusTick, setStatusTick] = useState(0);
 
   const consoleLines = [
     { text: "› FAULT INJECTED",         color: "#f59e0b" },
@@ -27,6 +29,24 @@ export default function Home() {
     }, 1400);
     return () => clearInterval(iv);
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    // KubePulse: green (2s) → spike (1.5s) → BLOCK (2s) → repeat
+    const phases = [2000, 1500, 2000];
+    let phase = 0;
+    const step = () => {
+      phase = (phase + 1) % 3;
+      setKubePhase(phase);
+      t = setTimeout(step, phases[phase]);
+    };
+    let t = setTimeout(step, phases[0]);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    const iv = setInterval(() => setStatusTick(t => t + 1), 2200);
+    return () => clearInterval(iv);
   }, []);
 
   useEffect(() => {
@@ -285,39 +305,52 @@ export default function Home() {
         <text x="20" y="26" fill="rgba(96,165,250,0.7)" fontSize="9" fontWeight="700" fontFamily="'JetBrains Mono',monospace" letterSpacing="2">KUBEPULSE · RELEASE DECISION DASHBOARD</text>
         <line x1="20" y1="34" x2="680" y2="34" stroke="rgba(255,255,255,0.07)" strokeWidth="1"/>
 
-        {/* BLOCK banner */}
-        <rect x="20" y="44" width="660" height="46" rx="8" fill="rgba(239,68,68,0.12)" stroke="rgba(239,68,68,0.55)" strokeWidth="1.5"/>
-        <circle cx="42" cy="67" r="7" fill="#ef4444">
-          <animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"/>
+        {/* BLOCK/OK banner — reactive to kubePhase */}
+        <rect x="20" y="44" width="660" height="46" rx="8"
+          fill={kubePhase === 2 ? "rgba(239,68,68,0.18)" : kubePhase === 1 ? "rgba(245,158,11,0.1)" : "rgba(34,197,94,0.08)"}
+          stroke={kubePhase === 2 ? "rgba(239,68,68,0.7)" : kubePhase === 1 ? "rgba(245,158,11,0.5)" : "rgba(34,197,94,0.4)"}
+          strokeWidth="1.5"/>
+        <circle cx="42" cy="67" r="7"
+          fill={kubePhase === 2 ? "#ef4444" : kubePhase === 1 ? "#f59e0b" : "#22c55e"}>
+          <animate attributeName="opacity" values="1;0.4;1"
+            dur={kubePhase === 2 ? "0.7s" : "2s"} repeatCount="indefinite"/>
         </circle>
-        <text x="56" y="61" fill="#ef4444" fontSize="11" fontWeight="900" fontFamily="'JetBrains Mono',monospace">RELEASE #428 — BLOCKED</text>
-        <text x="56" y="80" fill="rgba(239,68,68,0.65)" fontSize="8.5" fontFamily="'JetBrains Mono',monospace">safe_to_operate: false · decision: BLOCK · reason: latency regression + dependency degraded</text>
+        <text x="56" y="61" fontSize="11" fontWeight="900" fontFamily="'JetBrains Mono',monospace"
+          fill={kubePhase === 2 ? "#ef4444" : kubePhase === 1 ? "#f59e0b" : "#22c55e"}>
+          {kubePhase === 2 ? "RELEASE #428 — BLOCKED" : kubePhase === 1 ? "RELEASE #428 — WARNING: p95 SPIKE DETECTED" : "RELEASE #428 — MONITORING"}
+        </text>
+        <text x="56" y="80" fontSize="8.5" fontFamily="'JetBrains Mono',monospace"
+          fill={kubePhase === 2 ? "rgba(239,68,68,0.65)" : "rgba(255,255,255,0.3)"}>
+          {kubePhase === 2 ? "safe_to_operate: false · reason: latency +608% · dependency degraded" : kubePhase === 1 ? "p95 latency +333% detected · probes still GREEN · evaluating..." : "probes: healthy · latency: nominal · deps: ok"}
+        </text>
 
         {/* Pipeline steps */}
         {[
-          { label: "Deploy",    sub: "canary push",     x: 20,  c: "#60a5fa", status: "" },
-          { label: "Probes",    sub: "GREEN ✓",         x: 155, c: "#22c55e", status: "" },
-          { label: "p95 SLO",  sub: "+333% BREACH",    x: 290, c: "#ef4444", status: "FAIL" },
-          { label: "Deps",     sub: "DEGRADED",         x: 425, c: "#f59e0b", status: "WARN" },
-          { label: "Decision", sub: "BLOCK",            x: 560, c: "#ef4444", status: "BLOCK" },
+          { label: "Deploy",    sub: "canary push",  x: 20,  c: "#60a5fa" },
+          { label: "Probes",    sub: kubePhase >= 1 ? "GREEN ✓" : "GREEN ✓", x: 155, c: "#22c55e" },
+          { label: "p95 SLO",  sub: kubePhase >= 1 ? "+333% BREACH" : "nominal", x: 290, c: kubePhase >= 1 ? "#ef4444" : "#22c55e" },
+          { label: "Deps",     sub: kubePhase >= 1 ? "DEGRADED" : "healthy",    x: 425, c: kubePhase >= 1 ? "#f59e0b" : "#22c55e" },
+          { label: "Decision", sub: kubePhase === 2 ? "BLOCK" : kubePhase === 1 ? "EVALUATING" : "SHIP", x: 560, c: kubePhase === 2 ? "#ef4444" : kubePhase === 1 ? "#f59e0b" : "#22c55e" },
         ].map((s, i) => (
           <g key={s.label}>
             <rect x={s.x} y="104" width="110" height="42" rx="6"
-              fill={s.status === "BLOCK" ? "rgba(239,68,68,0.15)" : s.status === "FAIL" ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.04)"}
+              fill={s.sub === "BLOCK" ? "rgba(239,68,68,0.15)" : "rgba(255,255,255,0.04)"}
               stroke={s.c} strokeWidth="1.2"/>
             <text x={s.x+55} y="121" fill={s.c} fontSize="9.5" fontWeight="800" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">{s.label}</text>
             <text x={s.x+55} y="136" fill={s.c} fontSize="8" textAnchor="middle" fontFamily="'JetBrains Mono',monospace" opacity="0.7">{s.sub}</text>
-            {i < 4 && <line x1={s.x+110} y1="125" x2={s.x+135} y2="125" stroke={i >= 2 ? "#ef4444" : "rgba(255,255,255,0.2)"} strokeWidth="1.5" opacity="0.7"/>}
+            {i < 4 && <line x1={s.x+110} y1="125" x2={s.x+135} y2="125"
+              stroke={kubePhase >= 1 && i >= 2 ? "#ef4444" : "rgba(255,255,255,0.2)"}
+              strokeWidth="1.5" opacity="0.7"/>}
           </g>
         ))}
 
         {/* Metric bars */}
         {[
-          { label: "p95 Latency",   val: "+333%", pct: 88, col: "#ef4444" },
-          { label: "p95 AMD MI300X",val: "+608%", pct: 100,col: "#ef4444" },
-          { label: "Error Rate",    val: "+80%",  pct: 45, col: "#f59e0b" },
-          { label: "Dep Health",    val: "DEG",   pct: 30, col: "#f59e0b" },
-          { label: "Throughput",    val: "-38%",  pct: 22, col: "#22c55e" },
+          { label: "p95 Latency",    val: kubePhase >= 1 ? "+333%" : "nominal", pct: kubePhase >= 1 ? 88  : 15, col: kubePhase >= 1 ? "#ef4444" : "#22c55e" },
+          { label: "p95 AMD MI300X", val: kubePhase === 2 ? "+608%" : "nominal", pct: kubePhase === 2 ? 100 : 12, col: kubePhase === 2 ? "#ef4444" : "#22c55e" },
+          { label: "Error Rate",     val: kubePhase >= 1 ? "+80%"  : "<1%",     pct: kubePhase >= 1 ? 45  : 4,  col: kubePhase >= 1 ? "#f59e0b" : "#22c55e" },
+          { label: "Dep Health",     val: kubePhase >= 1 ? "DEG"   : "OK",      pct: kubePhase >= 1 ? 30  : 90, col: kubePhase >= 1 ? "#f59e0b" : "#22c55e" },
+          { label: "Throughput",     val: kubePhase === 2 ? "-38%"  : "stable",  pct: kubePhase === 2 ? 22  : 82, col: kubePhase === 2 ? "#ef4444" : "#22c55e" },
         ].map((m, i) => (
           <g key={m.label} transform={`translate(20,${164 + i * 18})`}>
             <text x="0" y="12" fill="rgba(255,255,255,0.35)" fontSize="7.5" fontFamily="'JetBrains Mono',monospace">{m.label}</text>
@@ -335,48 +368,55 @@ export default function Home() {
         <text x="20" y="26" fill="rgba(96,165,250,0.7)" fontSize="9" fontWeight="700" fontFamily="'JetBrains Mono',monospace" letterSpacing="2">FAIREVAL · AI RELEASE GATE DASHBOARD</text>
         <line x1="20" y1="34" x2="680" y2="34" stroke="rgba(255,255,255,0.07)" strokeWidth="1"/>
 
-        {/* Pipeline */}
+        {/* Big decision cards — SHIP / SHIP / BLOCK */}
         {[
-          { label: "Baseline",  x: 20,  c: "#60a5fa" },
-          { label: "Candidate", x: 155, c: "#a78bfa" },
-          { label: "Eval",      x: 290, c: "#f59e0b" },
-          { label: "RAI Gate",  x: 425, c: "#f59e0b" },
-          { label: "SHIP/BLOCK",x: 560, c: "#ef4444" },
+          { model: "Claude 3.5 Sonnet", score: "0.91", decision: "SHIP", col: "#22c55e", fill: "rgba(34,197,94,0.1)",  border: "rgba(34,197,94,0.4)",  x: 20  },
+          { model: "GPT-4o",            score: "0.85", decision: "SHIP", col: "#22c55e", fill: "rgba(34,197,94,0.1)",  border: "rgba(34,197,94,0.35)", x: 253 },
+          { model: "Gemini Flash",      score: "0.367",decision: "BLOCK",col: "#ef4444", fill: "rgba(239,68,68,0.14)", border: "rgba(239,68,68,0.55)", x: 486 },
+        ].map(m => (
+          <g key={m.model}>
+            <rect x={m.x} y="44" width="194" height="90" rx="8" fill={m.fill} stroke={m.border} strokeWidth="1.5"/>
+            {/* Decision label — BIG */}
+            <text x={m.x + 97} y="90" fill={m.col} fontSize="32" fontWeight="900" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">{m.decision}</text>
+            <text x={m.x + 97} y="108" fill="rgba(255,255,255,0.5)" fontSize="8" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">{m.model}</text>
+            <text x={m.x + 97} y="122" fill={m.col} fontSize="9" fontWeight="700" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">score: {m.score}</text>
+            {m.decision === "BLOCK" && (
+              <circle cx={m.x + 170} cy="54" r="5" fill="#ef4444">
+                <animate attributeName="opacity" values="1;0.2;1" dur="1.2s" repeatCount="indefinite"/>
+              </circle>
+            )}
+          </g>
+        ))}
+
+        {/* Eval pipeline */}
+        {[
+          { label: "RAG Retrieve", x: 20,  c: "#60a5fa" },
+          { label: "Eval Gate",    x: 185, c: "#f59e0b" },
+          { label: "RAI Check",    x: 350, c: "#a78bfa" },
+          { label: "Stat. Sig.",   x: 515, c: "#22c55e" },
         ].map((s, i) => (
           <g key={s.label}>
-            <rect x={s.x} y="44" width="110" height="34" rx="5" fill="rgba(255,255,255,0.035)" stroke={s.c} strokeWidth="1.2"/>
-            <text x={s.x+55} y="65" fill={s.c} fontSize="9" fontWeight="800" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">{s.label}</text>
-            {i < 4 && <line x1={s.x+110} y1="61" x2={s.x+135} y2="61" stroke="rgba(255,255,255,0.18)" strokeWidth="1.2"/>}
+            <rect x={s.x} y="148" width="140" height="28" rx="5" fill="rgba(255,255,255,0.03)" stroke={s.c} strokeWidth="1"/>
+            <text x={s.x+70} y="166" fill={s.c} fontSize="8.5" fontWeight="800" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">{s.label}</text>
+            {i < 3 && <line x1={s.x+140} y1="162" x2={s.x+165} y2="162" stroke="rgba(255,255,255,0.18)" strokeWidth="1"/>}
           </g>
         ))}
 
-        {/* Leaderboard */}
-        <text x="20" y="104" fill="rgba(255,255,255,0.18)" fontSize="7.5" fontFamily="'JetBrains Mono',monospace" letterSpacing="1">MODEL · EVAL SCORE · RAI · DECISION</text>
+        {/* Bottom stats */}
         {[
-          { model: "Claude 3.5 Sonnet", score: 0.91, pass: true,  col: "#22c55e", rai: "PASS" },
-          { model: "GPT-4o",            score: 0.85, pass: true,  col: "#22c55e", rai: "PASS" },
-          { model: "Gemini Pro",        score: 0.52, pass: false, col: "#f59e0b", rai: "REVIEW" },
-          { model: "Gemini Flash",      score: 0.367,pass: false, col: "#ef4444", rai: "BLOCK" },
-        ].map((m, i) => (
-          <g key={m.model} transform={`translate(20,${112 + i * 30})`}>
-            <rect x="0" y="0" width="660" height="26" rx="4"
-              fill={m.rai === "BLOCK" ? "rgba(239,68,68,0.08)" : "rgba(255,255,255,0.025)"}
-              stroke={m.rai === "BLOCK" ? "rgba(239,68,68,0.25)" : "rgba(255,255,255,0.06)"} strokeWidth="1"/>
-            <text x="12" y="17" fill="rgba(255,255,255,0.7)" fontSize="9" fontWeight="600" fontFamily="'JetBrains Mono',monospace">{m.model}</text>
-            {/* score bar */}
-            <rect x="220" y="8" width="300" height="8" rx="2" fill="rgba(255,255,255,0.06)"/>
-            <rect x="220" y="8" width={m.score * 300} height="8" rx="2" fill={m.col} opacity="0.6"/>
-            <text x="528" y="17" fill="rgba(255,255,255,0.4)" fontSize="8.5" fontFamily="'JetBrains Mono',monospace">{m.score.toFixed(3)}</text>
-            <rect x="570" y="4" width="78" height="18" rx="4"
-              fill={m.rai === "BLOCK" ? "rgba(239,68,68,0.2)" : m.rai === "REVIEW" ? "rgba(245,158,11,0.15)" : "rgba(34,197,94,0.12)"}
-              stroke={m.col} strokeWidth="1"/>
-            <text x="609" y="16" fill={m.col} fontSize="8.5" fontWeight="900" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">{m.rai}</text>
+          { val: "p=0.0",  label: "STAT. SIGNIFICANCE", x: 20,  col: "#22c55e" },
+          { val: "BLOCK",  label: "AMD SERVING GATE",   x: 230, col: "#ef4444" },
+          { val: "40%",    label: "PASS RATE → BLOCKED", x: 430, col: "#f59e0b" },
+          { val: "Zenodo", label: "REPORT PUBLISHED",   x: 580, col: "#60a5fa" },
+        ].map(m => (
+          <g key={m.label}>
+            <text x={m.x} y="208" fill={m.col} fontSize="20" fontWeight="900" fontFamily="'JetBrains Mono',monospace">{m.val}</text>
+            <text x={m.x} y="222" fill="rgba(255,255,255,0.28)" fontSize="7" fontFamily="'JetBrains Mono',monospace" letterSpacing="1">{m.label}</text>
           </g>
         ))}
 
-        {/* BLOCKED card */}
-        <rect x="20" y="238" width="660" height="16" rx="4" fill="rgba(239,68,68,0.1)" stroke="rgba(239,68,68,0.35)" strokeWidth="1"/>
-        <text x="350" y="249" fill="#ef4444" fontSize="8.5" fontWeight="900" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">BLOCKED BY RELEASE GATE · REASON: HALLUCINATION + GROUNDEDNESS REGRESSION + RAI RISK · p=0.0</text>
+        <rect x="20" y="235" width="660" height="16" rx="4" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.3)" strokeWidth="1"/>
+        <text x="350" y="246" fill="#ef4444" fontSize="8" fontWeight="900" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">BLOCKED · REASON: HALLUCINATION + GROUNDEDNESS REGRESSION · p=0.0 SIGNIFICANCE</text>
       </svg>
     ),
 
@@ -569,6 +609,23 @@ export default function Home() {
               <a href="https://github.com/kritibehl" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">GitHub ↗</a>
               <a href="https://www.linkedin.com/in/kriti-behl" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">LinkedIn ↗</a>
               <a href="mailto:kriti0608@gmail.com" className="btn btn-ghost">Email</a>
+            </div>
+
+            {/* System Status */}
+            <div className="sys-status">
+              <div className="ss-label">System Status</div>
+              {[
+                { name: "Temporal OSS",    state: "4 PRs Merged",       ok: true },
+                { name: "Faultline",       state: "0.0% duplicate rate", ok: true },
+                { name: "KubePulse",       state: kubePhase === 2 ? "BLOCKING ⬛" : kubePhase === 1 ? "+608% spike detected" : "Monitoring", ok: kubePhase !== 2 },
+                { name: "FairEval",        state: "Evaluating · p=0.0",  ok: true },
+              ].map((s, i) => (
+                <div key={s.name} className={`ss-row${i === statusTick % 4 ? " ss-active" : ""}`}>
+                  <span className={`ss-dot ${s.ok ? "ss-ok" : "ss-err"}`}/>
+                  <span className="ss-name">{s.name}</span>
+                  <span className={`ss-state ${s.ok ? "" : "ss-state-err"}`}>{s.state}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -778,6 +835,25 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* ── LIVE SYSTEMS SUMMARY ─────────────────── */}
+      <div className="live-systems rev">
+        <div className="ls-label">Live Engineering Output</div>
+        <div className="ls-stats">
+          {[
+            { val: "7",    label: "Repositories" },
+            { val: "50k+", label: "Lines of Code" },
+            { val: "4",    label: "OSS PRs Merged" },
+            { val: "3",    label: "Cloud Deployments" },
+            { val: "1",    label: "Production Internship" },
+          ].map(s => (
+            <div key={s.label} className="ls-stat">
+              <span className="ls-val">{s.val}</span>
+              <span className="ls-lbl">{s.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* ── PROJECTS ─────────────────────────────── */}
       <section className="section" id="projects">
@@ -989,10 +1065,20 @@ export default function Home() {
             I build systems that fail loudly, recover safely,<br/>
             and block unsafe releases before users are impacted.
           </h2>
-          <p className="cb-sub">Looking for backend/platform, SRE, AI evaluation, and reliability engineering roles. New grad · Dec 2025 · Open to relocation · US work authorized</p>
+          <p className="cb-sub">New grad · Dec 2025 · Open to relocation · US work authorized</p>
+
+          <div className="cb-roles">
+            <div className="cb-roles-label">Currently interviewing for</div>
+            <div className="cb-roles-chips">
+              {["Backend Engineering","Platform Engineering","Reliability / SRE","AI Infrastructure"].map(r => (
+                <span key={r} className="cb-role-chip">{r}</span>
+              ))}
+            </div>
+          </div>
+
           <div className="cb-btns">
-            <a href="/resume.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-primary">Download Resume</a>
-            <a href="https://github.com/kritibehl" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">View GitHub ↗</a>
+            <a href="https://github.com/kritibehl" target="_blank" rel="noopener noreferrer" className="btn btn-primary">View GitHub ↗</a>
+            <a href="/resume.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">Resume ↗</a>
             <a href="mailto:kriti0608@gmail.com" className="btn btn-ghost">Contact Me</a>
           </div>
           <div className="cb-links-row">
