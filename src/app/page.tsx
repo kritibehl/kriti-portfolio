@@ -1,1012 +1,1018 @@
 "use client";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 
-// ── Scroll reveal ─────────────────────────────────────────────────────────────
-function useReveal() {
-  useEffect(() => {
-    const els = document.querySelectorAll(".reveal");
-    const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add("visible")),
-      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" }
-    );
-    els.forEach((el) => obs.observe(el));
-    return () => obs.disconnect();
-  }, []);
-}
+export default function Home() {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [consoleLine, setConsoleLine] = useState(0);
 
-// ── Count-up ──────────────────────────────────────────────────────────────────
-function CountUp({ target, suffix = "", prefix = "", duration = 2200 }: { target: number; suffix?: string; prefix?: string; duration?: number }) {
-  const [val, setVal] = useState(0);
-  const [started, setStarted] = useState(false);
-  const ref = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => e.isIntersecting && setStarted(true), { threshold: 0.3 });
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, []);
-  useEffect(() => {
-    if (!started) return;
-    let start: number | null = null;
-    const step = (ts: number) => {
-      if (!start) start = ts;
-      const p = Math.min((ts - start) / duration, 1);
-      const ease = 1 - Math.pow(1 - p, 3);
-      setVal(Math.floor(ease * target));
-      if (p < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [started, target, duration]);
-  return <span ref={ref}>{prefix}{val.toLocaleString()}{suffix}</span>;
-}
-
-// ── Nav ───────────────────────────────────────────────────────────────────────
-function Nav() {
-  return (
-    <nav>
-      <a className="nav-logo" href="#home">KB</a>
-      <ul className="nav-links">
-        {[["OSS","#oss"],["Experience","#experience"],["Case Studies","#case-studies"],["Systems","#systems"],["Writing","#writing"],["Contact","#contact"]].map(([l,h])=>(
-          <li key={l}><a href={h}>{l}</a></li>
-        ))}
-      </ul>
-    </nav>
-  );
-}
-
-// ── Event Stream (hero right) ─────────────────────────────────────────────────
-function EventStream() {
-  const events = [
-    { label: "FAULT INJECTED",    color: "#EF4444", icon: "⚡" },
-    { label: "ANOMALY DETECTED",  color: "#F59E0B", icon: "◉" },
-    { label: "REPRODUCED",        color: "#818CF8", icon: "↩" },
-    { label: "ROOT CAUSE FOUND",  color: "#38BDF8", icon: "🔍" },
-    { label: "RELEASE BLOCKED",   color: "#22C55E", icon: "🛡" },
+  const consoleLines = [
+    { text: "› FAULT INJECTED",         color: "#f59e0b" },
+    { text: "› ANOMALY DETECTED",        color: "#ef4444" },
+    { text: "› REPRODUCING...",          color: "#60a5fa" },
+    { text: "› STALE WRITE REJECTED",    color: "#ef4444" },
+    { text: "✓ RELEASE BLOCKED",         color: "#22c55e" },
+    { text: "› INVARIANT CHECK PASSED",  color: "#22c55e" },
+    { text: "› FENCING TOKEN VALID",     color: "#60a5fa" },
+    { text: "✓ 0.0% DUPLICATE COMMITS",  color: "#22c55e" },
+    { text: "› PROBE HEALTHY — IGNORED", color: "#f59e0b" },
+    { text: "› p95 LATENCY +608%",       color: "#ef4444" },
+    { text: "✓ SAFE_TO_OPERATE: FALSE",  color: "#ef4444" },
+    { text: "✓ BLOCK RELEASE #428",      color: "#22c55e" },
   ];
-  const [active, setActive] = useState(0);
+
   useEffect(() => {
-    const id = setInterval(() => setActive(a => (a + 1) % events.length), 1500);
-    return () => clearInterval(id);
+    const iv = setInterval(() => {
+      setConsoleLine(l => (l + 1) % consoleLines.length);
+    }, 1400);
+    return () => clearInterval(iv);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return (
-    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 16, padding: "28px 24px", position: "relative", overflow: "hidden", animation: "glow-blue 4s ease infinite" }}>
-      {/* Terminal bar */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24, paddingBottom: 16, borderBottom: "1px solid var(--border)" }}>
-        <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#EF4444" }} />
-        <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#F59E0B" }} />
-        <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#22C55E" }} />
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-muted)", marginLeft: 8, letterSpacing: ".08em" }}>reliability-pipeline.go</span>
-        <span style={{ marginLeft: "auto" }} className="pill pill-green"><span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--green)", animation: "pulse-dot 1.4s infinite" }} />LIVE</span>
-      </div>
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const pref = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-      {events.map((ev, i) => (
-        <div key={i}>
-          <div style={{
-            display: "flex", alignItems: "center", gap: 12, padding: "11px 14px", borderRadius: 8,
-            background: active === i ? `${ev.color}14` : "transparent",
-            border: `1px solid ${active === i ? ev.color + "44" : "transparent"}`,
-            transition: "all 0.4s ease",
-          }}>
-            <span style={{ fontSize: 15, width: 22, textAlign: "center", flexShrink: 0 }}>{ev.icon}</span>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 700, color: active === i ? ev.color : "var(--text-muted)", letterSpacing: ".1em", transition: "color .4s" }}>{ev.label}</span>
-            {active === i && <div style={{ marginLeft: "auto", width: 6, height: 6, borderRadius: "50%", background: ev.color, animation: "pulse-dot 1s infinite" }} />}
-          </div>
-          {i < events.length - 1 && (
-            <div style={{ display: "flex", justifyContent: "center", padding: "2px 0" }}>
-              <div style={{ width: 1, height: 10, background: active > i ? events[i+1].color + "66" : "var(--border)", transition: "background .5s" }} />
-            </div>
-          )}
-        </div>
-      ))}
+    function countUp(el: HTMLElement, target: number, dur = 2400) {
+      if (pref) { el.textContent = target.toLocaleString(); return; }
+      const s = performance.now();
+      const tick = (now: number) => {
+        const p = Math.min((now - s) / dur, 1);
+        el.textContent = Math.round((1 - Math.pow(1 - p, 4)) * target).toLocaleString();
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
 
-      {/* Mini proof strip */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 20, paddingTop: 20, borderTop: "1px solid var(--border)" }}>
-        {[["4","Temporal PRs"],["0.0%","Dup Commits"],["1,500+","Fault Scenarios"],["Meta PE","Fellow"]].map(([v,l])=>(
-          <div key={l} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 12px", textAlign: "center" }}>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 800, color: "var(--blue)", lineHeight: 1 }}>{v}</div>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-muted)", marginTop: 4, letterSpacing: ".06em" }}>{l}</div>
-          </div>
+    const cObs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        const el = e.target as HTMLElement;
+        countUp(el, Number(el.dataset.target));
+        cObs.unobserve(el);
+      });
+    }, { threshold: 0.3 });
+    root.querySelectorAll(".count-up").forEach((el) => cObs.observe(el));
+
+    const rObs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        e.target.classList.add("vis");
+        rObs.unobserve(e.target);
+      });
+    }, { threshold: 0.04 });
+    root.querySelectorAll(".rev").forEach((el) => {
+      if (pref) el.classList.add("vis");
+      else rObs.observe(el);
+    });
+
+    return () => { cObs.disconnect(); rObs.disconnect(); };
+  }, []);
+
+  const filters = [
+    { id: "all",      label: "All" },
+    { id: "backend",  label: "Backend" },
+    { id: "sre",      label: "SRE" },
+    { id: "ai",       label: "AI Evaluation" },
+    { id: "systems",  label: "Systems" },
+  ];
+
+  const projects = [
+    {
+      id: "faultline", flagship: true, lanes: ["backend", "sre"],
+      title: "Faultline",
+      tagline: "Distributed correctness under failure",
+      problem: "Stale workers commit outdated results after lease takeover — lease expiry stops new claims, not a worker already holding a reference from writing late.",
+      built: "PostgreSQL fencing-token validation via UNIQUE(job_id, fencing_token), fault-injection proxy, reconciler, 29-assertion drill suite, k6 load tests, 11 Prometheus metrics.",
+      verified: "0.0% duplicate commits under 5–20% injected fault rate · 1,500+ failure scenarios · 0 invariant violations · naive baseline: 1.0–2.5%",
+      tags: ["PostgreSQL","Go","Python","k6","Observability","Correctness"],
+      metrics: [
+        { val: "0.0%",   label: "Duplicate Commits",   color: "green" },
+        { val: "1,500+", label: "Fault Scenarios",      color: "blue" },
+        { val: "0",      label: "Invariant Violations", color: "green" },
+      ],
+      links: [["GitHub ↗","https://github.com/kritibehl/faultline"]],
+      visual: "faultline",
+    },
+    {
+      id: "kubepulse", flagship: true, lanes: ["sre", "backend"],
+      title: "KubePulse",
+      tagline: "Release gates for systems that look healthy but are not",
+      problem: "Readiness probes report green while p95 latency spikes 600%, error rates rise, and dependency cascades degrade real traffic silently.",
+      built: "Baseline-vs-degraded engine, SLO gate, probe integrity check, DNS/TCP/TLS diagnostics, dependency risk scoring, rollback recommendations — CI/CD integrable.",
+      verified: "+608% p95 AMD MI300X blocked · +333% p95 drift caught with probes green · safe_to_operate=false · 0 false-safe decisions",
+      tags: ["Kubernetes","CI/CD","Python","Terraform","DNS/TLS","Rollback"],
+      metrics: [
+        { val: "+608%", label: "p95 Regression Blocked", color: "red" },
+        { val: "+333%", label: "p95 Drift Detected",     color: "amber" },
+        { val: "BLOCK", label: "Safe to Operate",        color: "red" },
+      ],
+      links: [["GitHub ↗","https://github.com/kritibehl/KubePulse"]],
+      visual: "kubepulse",
+    },
+    {
+      id: "faireval", flagship: true, lanes: ["ai"],
+      title: "FairEval",
+      tagline: "AI release governance for silent model regressions",
+      problem: "Most GenAI failures are silent: hallucinated facts, groundedness regressions, and latency spikes can ship unless evaluation is treated like release infrastructure.",
+      built: "FastAPI eval APIs + React dashboards with RAI gates, RAG groundedness metrics, Welch t-test + chi-squared significance testing, hardware-aware serving gate, CI release gate.",
+      verified: "Gemini Flash: 0.367 avg / 40% pass → BLOCK · AMD serving: p95 +47.1% → BLOCK despite quality pass · p=0.0 statistical significance · Zenodo report published",
+      tags: ["PyTorch","FastAPI","React","RAG eval","Responsible AI","Statistical gating"],
+      metrics: [
+        { val: "p=0.0",  label: "Statistical Significance", color: "green" },
+        { val: "BLOCK",  label: "AMD Serving Gate",          color: "red" },
+        { val: "40%",    label: "Pass Rate → Blocked",       color: "amber" },
+      ],
+      links: [
+        ["GitHub ↗","https://github.com/kritibehl/FairEval-Suite"],
+        ["Live Demo ↗","https://huggingface.co/spaces/kriti0608/FairEval-Suite"],
+        ["Zenodo ↗","https://doi.org/10.5281/zenodo.17625268"],
+      ],
+      visual: "faireval",
+    },
+    {
+      id: "agentgrid", flagship: false, lanes: ["ai", "backend"],
+      title: "AgentGrid + AutoOps",
+      tagline: "Agent workflows that route, validate, and escalate",
+      problem: "Most AI demos stop at generation. This handles what happens when AI is wrong — no structure, no escalation, no incident record.",
+      built: "RAG retrieval → LangGraph workflow → MCP-style tool execution → eval gate → ship/hold/escalate → AutoOps incident ingestion. Live on Cloud Run.",
+      verified: "30 passing tests · 9 ship / 10 hold / 6 escalate · 258ms p95 eval latency · 0.88 tool-call success rate · 0 unsafe shipments",
+      tags: ["FastAPI","LangGraph","AI agents","Eval gates","Cloud Run"],
+      metrics: [
+        { val: "0",      label: "Unsafe Shipments",   color: "green" },
+        { val: "0.88",   label: "Tool-Call Success",  color: "blue" },
+        { val: "258ms",  label: "p95 Eval Latency",   color: "blue" },
+      ],
+      links: [
+        ["Live Demo ↗","https://agentgrid-seven.vercel.app/"],
+        ["AgentGrid ↗","https://github.com/kritibehl/agentgrid-demo"],
+        ["AutoOps ↗","https://github.com/kritibehl/AutoOps-Insight"],
+      ],
+      visual: "agentgrid",
+    },
+    {
+      id: "dettrace", flagship: false, lanes: ["systems"],
+      title: "DetTrace",
+      tagline: "Replay diagnostics — first divergence before any visible failure",
+      problem: "Concurrency failures refuse to reproduce. Add a log and the bug disappears. By the time you have data, the interleaving is gone.",
+      built: "C++17 deterministic replay engine, Swift actor-isolated analysis, visual trace timeline, SPI/UART/I2C-style replay diagnostics, replay explorer CLI.",
+      verified: "GPIO interrupt race: first divergence at index 3 · Timer missed tick: index 1 · 1.0 confidence on repeated patterns · 10,000+ trace validations",
+      tags: ["C++17","Swift","CMake","Deterministic replay","Trace analysis"],
+      metrics: [
+        { val: "1.0",    label: "Incident Confidence",    color: "green" },
+        { val: "Idx 3",  label: "First Divergence",        color: "blue" },
+        { val: "10k+",   label: "Trace Validations",       color: "blue" },
+      ],
+      links: [["GitHub ↗","https://github.com/kritibehl/dettrace"]],
+      visual: "dettrace",
+    },
+    {
+      id: "accelsim", flagship: false, lanes: ["systems"],
+      title: "AccelSim-Lite",
+      tagline: "C++ runtime bottleneck classification and regression gating",
+      problem: "Profilers say slow. They don't say which stage is stalling — or whether adding compute helps vs. the bottleneck being memory bandwidth.",
+      built: "C++17 six-stage pipeline simulator with named stall classification per cycle: WaitingDependency, NoMemoryPort, NoComputeUnit. Benchmark dashboard + runtime regression gates.",
+      verified: "Pointer-heavy traversal: 25.65× slower than contiguous scan · memory_heavy: 2.4× throughput degradation · regression gate: PASS",
+      tags: ["C++17","CMake","GoogleTest","Linux","Cache locality"],
+      metrics: [
+        { val: "25.65×", label: "Cache Miss Penalty",    color: "red" },
+        { val: "2.4×",   label: "Throughput Degradation",color: "amber" },
+        { val: "PASS",   label: "Regression Gate",        color: "green" },
+      ],
+      links: [["GitHub ↗","https://github.com/kritibehl/accelsim-lite"]],
+      visual: "accelsim",
+    },
+  ];
+
+  const visible = activeFilter === "all"
+    ? projects
+    : projects.filter(p => p.lanes.includes(activeFilter));
+
+  // ── SVG VISUALS ──────────────────────────────────────────────────────────
+  const visuals: Record<string, React.ReactNode> = {
+
+    faultline: (
+      <svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" className="proj-svg">
+        <defs>
+          <marker id="fl-arr" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto">
+            <path d="M0,0 L7,3.5 L0,7Z" fill="rgba(96,165,250,0.8)"/>
+          </marker>
+          <marker id="fl-arr-red" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto">
+            <path d="M0,0 L7,3.5 L0,7Z" fill="rgba(239,68,68,0.8)"/>
+          </marker>
+          <marker id="fl-arr-grn" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto">
+            <path d="M0,0 L7,3.5 L0,7Z" fill="rgba(34,197,94,0.8)"/>
+          </marker>
+        </defs>
+        <rect width="700" height="260" fill="rgba(5,7,13,0.95)" rx="12"/>
+        {/* Header */}
+        <text x="20" y="26" fill="rgba(96,165,250,0.7)" fontSize="9" fontWeight="700" fontFamily="'JetBrains Mono',monospace" letterSpacing="2">FAULTLINE · DISTRIBUTED CORRECTNESS ARCHITECTURE</text>
+        <line x1="20" y1="34" x2="680" y2="34" stroke="rgba(255,255,255,0.07)" strokeWidth="1"/>
+
+        {/* Dispatcher node */}
+        <rect x="20" y="56" width="100" height="38" rx="6" fill="rgba(59,130,246,0.1)" stroke="rgba(59,130,246,0.5)" strokeWidth="1.5"/>
+        <text x="70" y="72" fill="#60a5fa" fontSize="10" fontWeight="800" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">Dispatcher</text>
+        <text x="70" y="86" fill="rgba(96,165,250,0.5)" fontSize="7.5" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">job scheduler</text>
+
+        {/* Worker A — valid path */}
+        <rect x="175" y="40" width="100" height="38" rx="6" fill="rgba(34,197,94,0.1)" stroke="rgba(34,197,94,0.45)" strokeWidth="1.5"/>
+        <text x="225" y="57" fill="#22c55e" fontSize="10" fontWeight="800" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">Worker A</text>
+        <text x="225" y="71" fill="rgba(34,197,94,0.5)" fontSize="7.5" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">active · valid lease</text>
+
+        {/* Worker B — stale */}
+        <rect x="175" y="96" width="100" height="38" rx="6" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.4)" strokeWidth="1.5" strokeDasharray="5,3"/>
+        <text x="225" y="113" fill="#ef4444" fontSize="10" fontWeight="800" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">Worker B</text>
+        <text x="225" y="127" fill="rgba(239,68,68,0.5)" fontSize="7.5" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">stale · old token</text>
+
+        {/* Lease + Fencing Token */}
+        <rect x="340" y="56" width="120" height="38" rx="6" fill="rgba(167,139,250,0.1)" stroke="rgba(167,139,250,0.45)" strokeWidth="1.5"/>
+        <text x="400" y="72" fill="#a78bfa" fontSize="10" fontWeight="800" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">Fencing Token</text>
+        <text x="400" y="86" fill="rgba(167,139,250,0.5)" fontSize="7.5" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">token=42</text>
+
+        {/* PostgreSQL */}
+        <rect x="520" y="40" width="110" height="90" rx="6" fill="rgba(59,130,246,0.06)" stroke="rgba(59,130,246,0.3)" strokeWidth="1.5"/>
+        <text x="575" y="68" fill="#60a5fa" fontSize="10" fontWeight="800" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">PostgreSQL</text>
+        <text x="575" y="82" fill="rgba(96,165,250,0.5)" fontSize="7.5" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">UNIQUE(job_id,</text>
+        <text x="575" y="94" fill="rgba(96,165,250,0.5)" fontSize="7.5" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">fencing_token)</text>
+        {/* WRITE REJECTED badge */}
+        <rect x="530" y="100" width="90" height="20" rx="4" fill="rgba(239,68,68,0.2)" stroke="rgba(239,68,68,0.6)" strokeWidth="1"/>
+        <text x="575" y="114" fill="#ef4444" fontSize="8.5" fontWeight="900" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">WRITE REJECTED</text>
+
+        {/* Arrows — valid path */}
+        <line x1="120" y1="70" x2="173" y2="62" stroke="rgba(96,165,250,0.7)" strokeWidth="1.5" markerEnd="url(#fl-arr)"/>
+        <line x1="275" y1="59" x2="338" y2="68" stroke="rgba(34,197,94,0.7)" strokeWidth="1.5" markerEnd="url(#fl-arr-grn)"/>
+        <line x1="460" y1="64" x2="518" y2="70" stroke="rgba(34,197,94,0.7)" strokeWidth="1.5" markerEnd="url(#fl-arr-grn)"/>
+
+        {/* Arrows — stale path */}
+        <line x1="120" y1="74" x2="173" y2="110" stroke="rgba(239,68,68,0.45)" strokeWidth="1.5" strokeDasharray="5,3" markerEnd="url(#fl-arr-red)"/>
+        <line x1="275" y1="115" x2="518" y2="115" stroke="rgba(239,68,68,0.45)" strokeWidth="1.5" strokeDasharray="5,3" markerEnd="url(#fl-arr-red)"/>
+
+        {/* Legend */}
+        <line x1="20" y1="155" x2="50" y2="155" stroke="rgba(34,197,94,0.7)" strokeWidth="1.5"/>
+        <text x="56" y="159" fill="rgba(34,197,94,0.7)" fontSize="8" fontFamily="'JetBrains Mono',monospace">valid commit path</text>
+        <line x1="160" y1="155" x2="190" y2="155" stroke="rgba(239,68,68,0.6)" strokeWidth="1.5" strokeDasharray="4,2"/>
+        <text x="196" y="159" fill="rgba(239,68,68,0.6)" fontSize="8" fontFamily="'JetBrains Mono',monospace">stale write → rejected</text>
+
+        {/* Metrics bottom bar */}
+        {[
+          { val: "0.0%",   label: "DUPLICATE COMMITS", x: 20,  col: "#22c55e" },
+          { val: "1,500+", label: "FAULT SCENARIOS",   x: 240, col: "#60a5fa" },
+          { val: "0",      label: "INVARIANT VIOLATIONS", x: 460, col: "#22c55e" },
+        ].map(m => (
+          <g key={m.label}>
+            <text x={m.x} y="196" fill={m.col} fontSize="22" fontWeight="900" fontFamily="'JetBrains Mono',monospace">{m.val}</text>
+            <text x={m.x} y="214" fill="rgba(255,255,255,0.35)" fontSize="8" fontFamily="'JetBrains Mono',monospace" letterSpacing="1">{m.label}</text>
+          </g>
         ))}
-      </div>
-    </div>
-  );
-}
 
-// ── HERO ──────────────────────────────────────────────────────────────────────
-function HeroSection() {
+        {/* Bottom chart: naive vs faultline */}
+        <text x="20" y="240" fill="rgba(255,255,255,0.2)" fontSize="8" fontFamily="'JetBrains Mono',monospace">Naive baseline: 1.0–2.5% duplicate rate</text>
+        <rect x="240" y="230" width="200" height="7" rx="2" fill="rgba(239,68,68,0.2)"/>
+        <rect x="240" y="230" width="40" height="7" rx="2" fill="rgba(239,68,68,0.6)"/>
+        <text x="448" y="238" fill="rgba(239,68,68,0.7)" fontSize="7.5" fontFamily="'JetBrains Mono',monospace">2.5%</text>
+
+        <text x="20" y="255" fill="rgba(255,255,255,0.2)" fontSize="8" fontFamily="'JetBrains Mono',monospace">Faultline: 0.0% duplicate rate</text>
+        <rect x="240" y="246" width="200" height="7" rx="2" fill="rgba(34,197,94,0.1)"/>
+        <rect x="240" y="246" width="2" height="7" rx="1" fill="rgba(34,197,94,0.8)"/>
+        <text x="448" y="254" fill="rgba(34,197,94,0.8)" fontSize="7.5" fontFamily="'JetBrains Mono',monospace">0.0%</text>
+      </svg>
+    ),
+
+    kubepulse: (
+      <svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" className="proj-svg">
+        <rect width="700" height="260" fill="rgba(5,7,13,0.95)" rx="12"/>
+        <text x="20" y="26" fill="rgba(96,165,250,0.7)" fontSize="9" fontWeight="700" fontFamily="'JetBrains Mono',monospace" letterSpacing="2">KUBEPULSE · RELEASE DECISION DASHBOARD</text>
+        <line x1="20" y1="34" x2="680" y2="34" stroke="rgba(255,255,255,0.07)" strokeWidth="1"/>
+
+        {/* BLOCK banner */}
+        <rect x="20" y="44" width="660" height="46" rx="8" fill="rgba(239,68,68,0.12)" stroke="rgba(239,68,68,0.55)" strokeWidth="1.5"/>
+        <circle cx="42" cy="67" r="7" fill="#ef4444">
+          <animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"/>
+        </circle>
+        <text x="56" y="61" fill="#ef4444" fontSize="11" fontWeight="900" fontFamily="'JetBrains Mono',monospace">RELEASE #428 — BLOCKED</text>
+        <text x="56" y="80" fill="rgba(239,68,68,0.65)" fontSize="8.5" fontFamily="'JetBrains Mono',monospace">safe_to_operate: false · decision: BLOCK · reason: latency regression + dependency degraded</text>
+
+        {/* Pipeline steps */}
+        {[
+          { label: "Deploy",    sub: "canary push",     x: 20,  c: "#60a5fa", status: "" },
+          { label: "Probes",    sub: "GREEN ✓",         x: 155, c: "#22c55e", status: "" },
+          { label: "p95 SLO",  sub: "+333% BREACH",    x: 290, c: "#ef4444", status: "FAIL" },
+          { label: "Deps",     sub: "DEGRADED",         x: 425, c: "#f59e0b", status: "WARN" },
+          { label: "Decision", sub: "BLOCK",            x: 560, c: "#ef4444", status: "BLOCK" },
+        ].map((s, i) => (
+          <g key={s.label}>
+            <rect x={s.x} y="104" width="110" height="42" rx="6"
+              fill={s.status === "BLOCK" ? "rgba(239,68,68,0.15)" : s.status === "FAIL" ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.04)"}
+              stroke={s.c} strokeWidth="1.2"/>
+            <text x={s.x+55} y="121" fill={s.c} fontSize="9.5" fontWeight="800" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">{s.label}</text>
+            <text x={s.x+55} y="136" fill={s.c} fontSize="8" textAnchor="middle" fontFamily="'JetBrains Mono',monospace" opacity="0.7">{s.sub}</text>
+            {i < 4 && <line x1={s.x+110} y1="125" x2={s.x+135} y2="125" stroke={i >= 2 ? "#ef4444" : "rgba(255,255,255,0.2)"} strokeWidth="1.5" opacity="0.7"/>}
+          </g>
+        ))}
+
+        {/* Metric bars */}
+        {[
+          { label: "p95 Latency",   val: "+333%", pct: 88, col: "#ef4444" },
+          { label: "p95 AMD MI300X",val: "+608%", pct: 100,col: "#ef4444" },
+          { label: "Error Rate",    val: "+80%",  pct: 45, col: "#f59e0b" },
+          { label: "Dep Health",    val: "DEG",   pct: 30, col: "#f59e0b" },
+          { label: "Throughput",    val: "-38%",  pct: 22, col: "#22c55e" },
+        ].map((m, i) => (
+          <g key={m.label} transform={`translate(20,${164 + i * 18})`}>
+            <text x="0" y="12" fill="rgba(255,255,255,0.35)" fontSize="7.5" fontFamily="'JetBrains Mono',monospace">{m.label}</text>
+            <rect x="130" y="3" width="460" height="8" rx="2" fill="rgba(255,255,255,0.05)"/>
+            <rect x="130" y="3" width={m.pct / 100 * 460} height="8" rx="2" fill={m.col} opacity="0.65"/>
+            <text x="600" y="12" fill={m.col} fontSize="8" fontWeight="700" fontFamily="'JetBrains Mono',monospace">{m.val}</text>
+          </g>
+        ))}
+      </svg>
+    ),
+
+    faireval: (
+      <svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" className="proj-svg">
+        <rect width="700" height="260" fill="rgba(5,7,13,0.95)" rx="12"/>
+        <text x="20" y="26" fill="rgba(96,165,250,0.7)" fontSize="9" fontWeight="700" fontFamily="'JetBrains Mono',monospace" letterSpacing="2">FAIREVAL · AI RELEASE GATE DASHBOARD</text>
+        <line x1="20" y1="34" x2="680" y2="34" stroke="rgba(255,255,255,0.07)" strokeWidth="1"/>
+
+        {/* Pipeline */}
+        {[
+          { label: "Baseline",  x: 20,  c: "#60a5fa" },
+          { label: "Candidate", x: 155, c: "#a78bfa" },
+          { label: "Eval",      x: 290, c: "#f59e0b" },
+          { label: "RAI Gate",  x: 425, c: "#f59e0b" },
+          { label: "SHIP/BLOCK",x: 560, c: "#ef4444" },
+        ].map((s, i) => (
+          <g key={s.label}>
+            <rect x={s.x} y="44" width="110" height="34" rx="5" fill="rgba(255,255,255,0.035)" stroke={s.c} strokeWidth="1.2"/>
+            <text x={s.x+55} y="65" fill={s.c} fontSize="9" fontWeight="800" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">{s.label}</text>
+            {i < 4 && <line x1={s.x+110} y1="61" x2={s.x+135} y2="61" stroke="rgba(255,255,255,0.18)" strokeWidth="1.2"/>}
+          </g>
+        ))}
+
+        {/* Leaderboard */}
+        <text x="20" y="104" fill="rgba(255,255,255,0.18)" fontSize="7.5" fontFamily="'JetBrains Mono',monospace" letterSpacing="1">MODEL · EVAL SCORE · RAI · DECISION</text>
+        {[
+          { model: "Claude 3.5 Sonnet", score: 0.91, pass: true,  col: "#22c55e", rai: "PASS" },
+          { model: "GPT-4o",            score: 0.85, pass: true,  col: "#22c55e", rai: "PASS" },
+          { model: "Gemini Pro",        score: 0.52, pass: false, col: "#f59e0b", rai: "REVIEW" },
+          { model: "Gemini Flash",      score: 0.367,pass: false, col: "#ef4444", rai: "BLOCK" },
+        ].map((m, i) => (
+          <g key={m.model} transform={`translate(20,${112 + i * 30})`}>
+            <rect x="0" y="0" width="660" height="26" rx="4"
+              fill={m.rai === "BLOCK" ? "rgba(239,68,68,0.08)" : "rgba(255,255,255,0.025)"}
+              stroke={m.rai === "BLOCK" ? "rgba(239,68,68,0.25)" : "rgba(255,255,255,0.06)"} strokeWidth="1"/>
+            <text x="12" y="17" fill="rgba(255,255,255,0.7)" fontSize="9" fontWeight="600" fontFamily="'JetBrains Mono',monospace">{m.model}</text>
+            {/* score bar */}
+            <rect x="220" y="8" width="300" height="8" rx="2" fill="rgba(255,255,255,0.06)"/>
+            <rect x="220" y="8" width={m.score * 300} height="8" rx="2" fill={m.col} opacity="0.6"/>
+            <text x="528" y="17" fill="rgba(255,255,255,0.4)" fontSize="8.5" fontFamily="'JetBrains Mono',monospace">{m.score.toFixed(3)}</text>
+            <rect x="570" y="4" width="78" height="18" rx="4"
+              fill={m.rai === "BLOCK" ? "rgba(239,68,68,0.2)" : m.rai === "REVIEW" ? "rgba(245,158,11,0.15)" : "rgba(34,197,94,0.12)"}
+              stroke={m.col} strokeWidth="1"/>
+            <text x="609" y="16" fill={m.col} fontSize="8.5" fontWeight="900" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">{m.rai}</text>
+          </g>
+        ))}
+
+        {/* BLOCKED card */}
+        <rect x="20" y="238" width="660" height="16" rx="4" fill="rgba(239,68,68,0.1)" stroke="rgba(239,68,68,0.35)" strokeWidth="1"/>
+        <text x="350" y="249" fill="#ef4444" fontSize="8.5" fontWeight="900" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">BLOCKED BY RELEASE GATE · REASON: HALLUCINATION + GROUNDEDNESS REGRESSION + RAI RISK · p=0.0</text>
+      </svg>
+    ),
+
+    agentgrid: (
+      <svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" className="proj-svg">
+        <defs>
+          <marker id="ag-arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6Z" fill="rgba(96,165,250,0.8)"/>
+          </marker>
+        </defs>
+        <rect width="700" height="260" fill="rgba(5,7,13,0.95)" rx="12"/>
+        <text x="20" y="26" fill="rgba(96,165,250,0.7)" fontSize="9" fontWeight="700" fontFamily="'JetBrains Mono',monospace" letterSpacing="2">AGENTGRID · AGENTIC WORKFLOW ENGINE</text>
+        <line x1="20" y1="34" x2="680" y2="34" stroke="rgba(255,255,255,0.07)" strokeWidth="1"/>
+
+        {/* Main workflow */}
+        {[
+          { label: "Request",      x: 20,  y: 100, c: "#60a5fa" },
+          { label: "Retrieve\nContext", x: 145, y: 100, c: "#a78bfa" },
+          { label: "Agent\nDecision",  x: 270, y: 100, c: "#60a5fa" },
+          { label: "Tool\nExecute",   x: 395, y: 100, c: "#22c55e" },
+          { label: "Eval\nGate",      x: 520, y: 100, c: "#f59e0b" },
+        ].map((n, i) => (
+          <g key={n.label}>
+            <rect x={n.x} y={n.y} width="100" height="44" rx="6" fill="rgba(255,255,255,0.04)" stroke={n.c} strokeWidth="1.2"/>
+            {n.label.split("\n").map((line, li) => (
+              <text key={li} x={n.x + 50} y={n.y + 18 + li * 14} fill={n.c} fontSize="9" fontWeight="800" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">{line}</text>
+            ))}
+            {i < 4 && <line x1={n.x + 100} y1={n.y + 22} x2={n.x + 125} y2={n.y + 22} stroke="rgba(255,255,255,0.2)" strokeWidth="1.2" markerEnd="url(#ag-arr)"/>}
+          </g>
+        ))}
+
+        {/* Outcomes */}
+        {[
+          { label: "SHIP",     y: 56,  c: "#22c55e", desc: "9 decisions" },
+          { label: "HOLD",     y: 84,  c: "#f59e0b", desc: "10 decisions" },
+          { label: "ESCALATE", y: 112, c: "#ef4444", desc: "6 decisions" },
+          { label: "RETRY",    y: 140, c: "#60a5fa", desc: "on tool fail" },
+        ].map(o => (
+          <g key={o.label}>
+            <rect x="640" y={o.y} width="50" height="20" rx="4"
+              fill={o.c === "#22c55e" ? "rgba(34,197,94,0.15)" : o.c === "#ef4444" ? "rgba(239,68,68,0.12)" : o.c === "#f59e0b" ? "rgba(245,158,11,0.12)" : "rgba(96,165,250,0.1)"}
+              stroke={o.c} strokeWidth="1"/>
+            <text x="665" y={o.y + 14} fill={o.c} fontSize="8.5" fontWeight="900" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">{o.label}</text>
+            <line x1="620" y1="122" x2="638" y2={o.y + 10} stroke={o.c} strokeWidth="0.8" opacity="0.4" strokeDasharray="3,2"/>
+          </g>
+        ))}
+
+        {/* Metrics */}
+        {[
+          { val: "30", label: "PASSING TESTS", x: 20,  c: "#22c55e" },
+          { val: "0",  label: "UNSAFE SHIPS",  x: 180, c: "#22c55e" },
+          { val: "0.88",label:"TOOL SUCCESS",  x: 330, c: "#60a5fa" },
+          { val: "258ms",label:"p95 LATENCY",  x: 490, c: "#60a5fa" },
+        ].map(m => (
+          <g key={m.label}>
+            <text x={m.x} y="196" fill={m.c} fontSize="24" fontWeight="900" fontFamily="'JetBrains Mono',monospace">{m.val}</text>
+            <text x={m.x} y="214" fill="rgba(255,255,255,0.3)" fontSize="7.5" fontFamily="'JetBrains Mono',monospace" letterSpacing="1">{m.label}</text>
+          </g>
+        ))}
+
+        <text x="20" y="248" fill="rgba(255,255,255,0.15)" fontSize="8" fontFamily="'JetBrains Mono',monospace">RAG retrieval → LangGraph → MCP-style tool execution → eval gate → AutoOps incident · Live on Cloud Run</text>
+      </svg>
+    ),
+
+    dettrace: (
+      <svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg" className="proj-svg">
+        <rect width="700" height="220" fill="rgba(5,7,13,0.95)" rx="12"/>
+        <text x="20" y="26" fill="rgba(96,165,250,0.7)" fontSize="9" fontWeight="700" fontFamily="'JetBrains Mono',monospace" letterSpacing="2">DETTRACE · REPLAY TIMELINE · FIRST DIVERGENCE ISOLATION</text>
+        <line x1="20" y1="34" x2="680" y2="34" stroke="rgba(255,255,255,0.07)" strokeWidth="1"/>
+
+        {/* Expected trace */}
+        <text x="20" y="58" fill="rgba(34,197,94,0.6)" fontSize="8" fontFamily="'JetBrains Mono',monospace" letterSpacing="1">EXPECTED TRACE</text>
+        <line x1="20" y1="72" x2="660" y2="72" stroke="rgba(34,197,94,0.2)" strokeWidth="1.5"/>
+        {[50, 150, 250, 350, 450, 550, 640].map((x, i) => (
+          <g key={x}>
+            <circle cx={x} cy="72" r="5" fill="rgba(34,197,94,0.5)" stroke="rgba(34,197,94,0.8)" strokeWidth="1"/>
+            <text x={x} y="88" fill="rgba(34,197,94,0.45)" fontSize="7" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">evt-{i}</text>
+          </g>
+        ))}
+
+        {/* Actual trace */}
+        <text x="20" y="112" fill="rgba(255,255,255,0.35)" fontSize="8" fontFamily="'JetBrains Mono',monospace" letterSpacing="1">ACTUAL TRACE</text>
+        <line x1="20" y1="126" x2="660" y2="126" stroke="rgba(255,255,255,0.1)" strokeWidth="1.5"/>
+        {[50, 150, 250].map((x, i) => (
+          <g key={x}>
+            <circle cx={x} cy="126" r="5" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.35)" strokeWidth="1"/>
+            <text x={x} y="142" fill="rgba(255,255,255,0.3)" fontSize="7" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">evt-{i}</text>
+          </g>
+        ))}
+        {/* Divergence at idx 3 */}
+        <circle cx="350" cy="126" r="8" fill="rgba(239,68,68,0.25)" stroke="#ef4444" strokeWidth="2">
+          <animate attributeName="r" values="8;11;8" dur="1.8s" repeatCount="indefinite"/>
+        </circle>
+        <text x="350" y="142" fill="#ef4444" fontSize="7" textAnchor="middle" fontFamily="'JetBrains Mono',monospace" fontWeight="900">evt-3</text>
+
+        {/* Divergence annotation */}
+        <line x1="350" y1="84" x2="350" y2="116" stroke="rgba(239,68,68,0.5)" strokeWidth="1.5" strokeDasharray="4,2"/>
+        <rect x="290" y="55" width="120" height="26" rx="5" fill="rgba(239,68,68,0.15)" stroke="rgba(239,68,68,0.5)" strokeWidth="1"/>
+        <text x="350" y="66" fill="#ef4444" fontSize="9" fontWeight="900" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">FIRST DIVERGENCE</text>
+        <text x="350" y="77" fill="rgba(239,68,68,0.7)" fontSize="7.5" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">index 3 · interrupt race</text>
+
+        {[450, 550, 640].map((x, i) => (
+          <g key={x}>
+            <circle cx={x} cy="126" r="5" fill="rgba(239,68,68,0.2)" stroke="rgba(239,68,68,0.35)" strokeWidth="1"/>
+            <text x={x} y="142" fill="rgba(239,68,68,0.3)" fontSize="7" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">evt-{4+i}</text>
+          </g>
+        ))}
+
+        <rect x="20" y="162" width="660" height="20" rx="4" fill="rgba(34,197,94,0.06)" stroke="rgba(34,197,94,0.2)"/>
+        <text x="350" y="175" fill="#22c55e" fontSize="8.5" fontWeight="900" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">NON-REPRODUCIBLE → DETERMINISTIC ROOT CAUSE · 1.0 CONFIDENCE · 10,000+ TRACE VALIDATIONS</text>
+        <text x="20" y="205" fill="rgba(255,255,255,0.18)" fontSize="7.5" fontFamily="'JetBrains Mono',monospace">GPIO interrupt race isolated at index 3 · C++17 deterministic replay engine · Swift actor-isolated analysis</text>
+      </svg>
+    ),
+
+    accelsim: (
+      <svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg" className="proj-svg">
+        <rect width="700" height="220" fill="rgba(5,7,13,0.95)" rx="12"/>
+        <text x="20" y="26" fill="rgba(96,165,250,0.7)" fontSize="9" fontWeight="700" fontFamily="'JetBrains Mono',monospace" letterSpacing="2">ACCELSIM-LITE · PIPELINE BOTTLENECK ANALYSIS</text>
+        <line x1="20" y1="34" x2="680" y2="34" stroke="rgba(255,255,255,0.07)" strokeWidth="1"/>
+
+        {["Fetch","Decode","Execute","Memory","Writeback"].map((s, i) => (
+          <g key={s}>
+            <rect x={20 + i * 132} y="48" width="110" height="36" rx="6"
+              fill={i === 3 ? "rgba(239,68,68,0.15)" : "rgba(255,255,255,0.03)"}
+              stroke={i === 3 ? "#ef4444" : "rgba(255,255,255,0.1)"} strokeWidth={i===3?1.5:1}/>
+            <text x={20 + i * 132 + 55} y="70" fill={i === 3 ? "#ef4444" : "rgba(255,255,255,0.4)"} fontSize="10" fontWeight="700" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">{s}</text>
+            {i < 4 && <line x1={20 + i*132+110} y1="66" x2={20 + i*132+132} y2="66" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>}
+          </g>
+        ))}
+        <text x="350" y="104" fill="#ef4444" fontSize="9" fontWeight="800" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">↑ BOTTLENECK: NoMemoryPort · WaitingDependency · MEMORY BOUND</text>
+
+        {[
+          { label: "Contiguous scan",        pct: 95, val: "1.0×",   c: "#22c55e" },
+          { label: "Pointer-heavy traversal", pct: 15, val: "25.65× slower", c: "#ef4444" },
+          { label: "memory_heavy benchmark",  pct: 42, val: "2.4× degraded", c: "#f59e0b" },
+        ].map((b, i) => (
+          <g key={b.label} transform={`translate(20,${120 + i * 28})`}>
+            <text x="0" y="14" fill="rgba(255,255,255,0.45)" fontSize="8.5" fontFamily="'JetBrains Mono',monospace">{b.label}</text>
+            <rect x="200" y="4" width="380" height="10" rx="2" fill="rgba(255,255,255,0.05)"/>
+            <rect x="200" y="4" width={b.pct / 100 * 380} height="10" rx="2" fill={b.c} opacity="0.65"/>
+            <text x="590" y="14" fill={b.c} fontSize="9" fontWeight="700" fontFamily="'JetBrains Mono',monospace">{b.val}</text>
+          </g>
+        ))}
+
+        <rect x="20" y="204" width="660" height="12" rx="3" fill="rgba(34,197,94,0.06)" stroke="rgba(34,197,94,0.2)"/>
+        <text x="350" y="213" fill="#22c55e" fontSize="7.5" fontWeight="700" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">RUNTIME REGRESSION GATE: PASS · C++17 six-stage pipeline · named stall classification</text>
+      </svg>
+    ),
+  };
+
   return (
-    <section id="home" style={{ minHeight: "100vh", display: "flex", alignItems: "center", paddingTop: 58, position: "relative", overflow: "hidden" }}>
-      <div className="grid-bg" style={{ position: "absolute", inset: 0, opacity: 0.55 }} />
-      {/* Radial glow */}
-      <div style={{ position: "absolute", top: "15%", left: "20%", width: 700, height: 700, borderRadius: "50%", background: "radial-gradient(circle, rgba(56,189,248,.06) 0%, transparent 65%)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", bottom: "10%", right: "10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(129,140,248,.04) 0%, transparent 65%)", pointerEvents: "none" }} />
+    <div ref={rootRef} className="page">
 
-      <div className="container" style={{ position: "relative", zIndex: 1, width: "100%" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "58% 42%", gap: 48, alignItems: "center", minHeight: "calc(100vh - 58px)", paddingBottom: 60 }}>
+      {/* ── NAV ──────────────────────────────────── */}
+      <nav className="top-nav rev">
+        <span className="nav-logo">KB</span>
+        <div className="nav-links">
+          <a href="#proof"    className="nav-link">Proof</a>
+          <a href="#oss"      className="nav-link">Open Source</a>
+          <a href="#projects" className="nav-link">Projects</a>
+          <a href="#experience" className="nav-link">Experience</a>
+          <a href="/resume.pdf" target="_blank" rel="noopener noreferrer" className="nav-link nav-resume">Resume ↗</a>
+        </div>
+      </nav>
 
-          {/* LEFT */}
-          <div style={{ animation: "slide-up .9s ease both" }}>
-            <div style={{ marginBottom: 24 }}>
-              <span className="pill pill-blue">
-                <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--blue)", animation: "pulse-dot 1.5s infinite" }} />
-                Available for roles
-              </span>
+      {/* ── HERO ─────────────────────────────────── */}
+      <section className="hero rev" id="hero">
+        <div className="hero-split">
+
+          {/* Left */}
+          <div className="hero-left">
+            <div className="hero-eyebrow">
+              <span className="hero-dot" />
+              Open to roles · New grad Dec 2025 · US work authorized
             </div>
 
-            {/* GIANT headline */}
-            <h1 style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(56px, 8vw, 110px)",
-              fontWeight: 800,
-              lineHeight: .95,
-              letterSpacing: "-.03em",
-              color: "var(--text-primary)",
-              marginBottom: 32,
-            }}>
-              BUILDING<br />
-              SYSTEMS<br />
-              THAT FAIL<br />
-              <span style={{ color: "var(--red)" }}>LOUDLY</span>.
+            <h1 className="hero-headline">
+              <span className="hl-building">BUILDING SYSTEMS</span>
+              <span className="hl-that">THAT FAIL LOUDLY,</span>
+              <span className="hl-recover">RECOVER SAFELY,</span>
+              <span className="hl-block">AND BLOCK BAD RELEASES.</span>
             </h1>
 
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--text-muted)", letterSpacing: ".12em", marginBottom: 12, textTransform: "uppercase" }}>
-              Kriti Behl — Correctness, Reliability & Infrastructure Engineer
+            <p className="hero-subline">
+              Kriti Behl &mdash; Correctness, Reliability &amp; Infrastructure Engineer
             </p>
 
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 28 }}>
-              {["Distributed Systems","Reliability Engineering","AI Infrastructure","Open Source Go"].map(t => (
-                <span key={t} style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-muted)", padding: "3px 9px", border: "1px solid var(--border)", borderRadius: 4 }}>{t}</span>
+            <div className="hero-btns">
+              <a href="#projects" className="btn btn-primary">Explore Work →</a>
+              <a href="https://github.com/kritibehl" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">GitHub ↗</a>
+              <a href="https://www.linkedin.com/in/kriti-behl" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">LinkedIn ↗</a>
+              <a href="mailto:kriti0608@gmail.com" className="btn btn-ghost">Email</a>
+            </div>
+          </div>
+
+          {/* Right — live console */}
+          <div className="hero-right">
+            <div className="console-panel">
+              <div className="console-header">
+                <span className="con-dot con-red"/>
+                <span className="con-dot con-yellow"/>
+                <span className="con-dot con-green"/>
+                <span className="console-title">reliability-pipeline · live</span>
+              </div>
+              <div className="console-body">
+                <div className="console-static">
+                  <span className="con-muted">$ </span>run faultline --fault-rate=15% --scenarios=1500<br/>
+                  <span style={{color:"#22c55e"}}>✓</span> scheduler initialized<br/>
+                  <span style={{color:"#22c55e"}}>✓</span> fault proxy ready<br/>
+                  <span style={{color:"#22c55e"}}>✓</span> fencing tokens active<br/>
+                  <span className="con-muted">─────────────────────</span><br/>
+                </div>
+                {consoleLines.map((l, i) => (
+                  <div
+                    key={i}
+                    className={`console-line${i === consoleLine ? " console-active" : i === (consoleLine - 1 + consoleLines.length) % consoleLines.length ? " console-prev" : " console-hidden"}`}
+                    style={{ color: l.color }}
+                  >
+                    {l.text}
+                  </div>
+                ))}
+                <div className="console-cursor">█</div>
+              </div>
+            </div>
+
+            {/* 4 proof cards */}
+            <div className="hero-proof-cards">
+              {[
+                { val: "4",      label: "Temporal PRs Merged",     color: "blue" },
+                { val: "0.0%",   label: "Duplicate Commits",        color: "green" },
+                { val: "1,500+", label: "Fault Scenarios",          color: "blue" },
+                { val: "Meta PE",label: "Fellow · 2026",            color: "violet" },
+              ].map(c => (
+                <div key={c.val} className={`hpc hpc-${c.color}`}>
+                  <div className="hpc-val">{c.val}</div>
+                  <div className="hpc-label">{c.label}</div>
+                </div>
               ))}
             </div>
-
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-              <a href="#case-studies" className="btn btn-primary">Explore My Work →</a>
-              <a href="https://github.com" target="_blank" rel="noreferrer" className="btn btn-outline">GitHub</a>
-              <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="btn btn-outline">LinkedIn</a>
-            </div>
-
-            <div style={{ marginTop: 24 }}>
-              <p style={{ fontSize: 14, color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
-                MS CS @ University of Florida · 4 merged Temporal Go SDK PRs · Meta PE Fellow
-              </p>
-            </div>
           </div>
 
-          {/* RIGHT */}
-          <div style={{ animation: "fade-in 1.3s ease both" }}>
-            <EventStream />
-          </div>
         </div>
-      </div>
-    </section>
-  );
-}
+      </section>
 
-// ── SYSTEMS PROOF WALL ────────────────────────────────────────────────────────
-function ProofWall() {
-  const stats = [
-    { target: 4,      suffix: "",     prefix: "",  label: "Merged OSS PRs",      sub: "Temporal Go SDK",           color: "var(--blue)" },
-    { target: 1500,   suffix: "+",    prefix: "",  label: "Fault Scenarios",     sub: "Faultline validation",      color: "var(--indigo)" },
-    { target: 10000,  suffix: "+",    prefix: "",  label: "Trace Validations",   sub: "DetTrace diagnostics",      color: "var(--green)" },
-    { target: 100000, suffix: "+",    prefix: "",  label: "HSM Records / Run",   sub: "Thales backend",            color: "var(--amber)" },
-    { target: 0,      suffix: ".0%",  prefix: "",  label: "Duplicate Commits",   sub: "Correctness proof",         color: "var(--green)", override: "0.0%" },
-    { target: 608,    suffix: "%",    prefix: "+", label: "p95 Regression Blocked", sub: "KubePulse release gate", color: "var(--red)" },
-  ];
-
-  return (
-    <section style={{ background: "var(--bg-section)", padding: "72px 0", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}>
-      <div className="container">
-        <div className="reveal" style={{ textAlign: "center", marginBottom: 56 }}>
-          <div className="section-label" style={{ justifyContent: "center", display: "flex" }}>External Verification</div>
-          <h2 className="section-title" style={{ textAlign: "center", fontSize: "clamp(32px,4vw,44px)" }}>Systems Proof Wall</h2>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 2 }}>
-          {stats.map((s, i) => (
-            <div key={i} className="reveal" style={{
-              padding: "44px 36px",
-              background: i % 2 === 0 ? "var(--card)" : "var(--bg)",
-              border: "1px solid var(--border)",
-              borderRadius: i === 0 ? "12px 0 0 0" : i === 2 ? "0 12px 0 0" : i === 3 ? "0 0 0 12px" : i === 5 ? "0 0 12px 0" : "0",
-              position: "relative", overflow: "hidden",
-              animationDelay: `${i * .08}s`,
-            }}>
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: s.color }} />
-              <div style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "clamp(52px,6vw,72px)",
-                fontWeight: 800,
-                color: s.color,
-                lineHeight: 1,
-                marginBottom: 10,
-              }}>
-                {s.override ? s.override : <CountUp target={s.target} suffix={s.suffix} prefix={s.prefix} />}
-              </div>
-              <div style={{ fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 16, color: "var(--text-primary)", marginBottom: 4 }}>{s.label}</div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-muted)", letterSpacing: ".06em" }}>{s.sub}</div>
+      {/* ── TRUSTED NETWORK ──────────────────────── */}
+      <div className="trusted-strip rev">
+        <div className="ts-label">Trusted Networks &amp; Contributions</div>
+        <div className="ts-logos">
+          {[
+            { name: "Temporal",          sub: "4 merged PRs" },
+            { name: "Azure SDK",         sub: "2 PRs under review" },
+            { name: "Thales",            sub: "100k+ HSM records/run" },
+            { name: "Meta × MLH",        sub: "PE Fellow · 2026" },
+            { name: "University of Florida", sub: "MS CS · GPA 3.8" },
+            { name: "Rewriting the Code",sub: "Women in Tech" },
+            { name: "McKinsey Forward",  sub: "Selected · 2026" },
+            { name: "Hugging Face",      sub: "FairEval published" },
+          ].map(l => (
+            <div key={l.name} className="ts-logo-card">
+              <div className="ts-logo-name">{l.name}</div>
+              <div className="ts-logo-sub">{l.sub}</div>
             </div>
           ))}
         </div>
       </div>
-    </section>
-  );
-}
 
-// ── OPEN SOURCE ───────────────────────────────────────────────────────────────
-function OpenSourceSection() {
-  const prs = [
-    { num: "#2298", title: "Async future chaining", desc: "Fixed ready futures that could still block callers in async execution paths.", tags: ["async","futures","Go"] },
-    { num: "#2212", title: "Workflow mock context propagation", desc: "Made mock execution observe correctly propagated headers.", tags: ["mocks","context","headers"] },
-    { num: "#2200", title: "Child workflow goroutine leak", desc: "Closed blocked doneChannel path; added regression test.", tags: ["goroutines","leak","concurrency"] },
-    { num: "#2248", title: "Poller type assignment", desc: "Restored sticky/non-sticky task poller distinction.", tags: ["poller","task-queue"] },
-  ];
+      {/* ── SYSTEMS PROOF WALL ───────────────────── */}
+      <section className="section rev" id="proof">
+        <div className="sec-header">
+          <span className="sec-label">Systems Proof Wall</span>
+          <h2 className="sec-title">Not Claims. Proof.</h2>
+        </div>
+        <div className="proof-wall">
+          {[
+            { target: 4,      suffix: "",      label: "Merged Temporal Go SDK PRs", sub: "Maintainer-reviewed production runtime",   color: "blue",   href: "https://github.com/temporalio/sdk-go/pulls?q=is%3Apr+author%3Akritibehl" },
+            { target: 1500,   suffix: "+",     label: "Fault Scenarios",             sub: "Injected under 5–20% fault rate",           color: "blue",   href: "https://github.com/kritibehl/faultline" },
+            { target: 10000,  suffix: "+",     label: "Trace Validations",           sub: "FairEval + AgentGrid eval infrastructure",  color: "blue",   href: "https://github.com/kritibehl/FairEval-Suite" },
+            { target: 100000, suffix: "+",     label: "HSM Records / Run",           sub: "payShield 10K · Luna HSM · Thales",          color: "violet", href: "https://github.com/kritibehl" },
+            { target: 0,      suffix: ".0%",   label: "Duplicate Commits",           sub: "Faultline · fencing-token correctness",      color: "green",  href: "https://github.com/kritibehl/faultline" },
+            { target: 608,    suffix: "%",     label: "p95 Regression Blocked",      sub: "AMD MI300X · KubePulse release gate",        color: "red",    href: "https://github.com/kritibehl/KubePulse" },
+          ].map(p => (
+            <a key={p.label} href={p.href} target="_blank" rel="noopener noreferrer" className={`pw-card pw-${p.color}`}>
+              <div className="pw-num">
+                <span className="count-up" data-target={p.target}>0</span>
+                <span className="pw-suffix">{p.suffix}</span>
+              </div>
+              <div className="pw-label">{p.label}</div>
+              <div className="pw-sub">{p.sub}</div>
+              <div className="pw-cta">View proof ↗</div>
+            </a>
+          ))}
+        </div>
+      </section>
 
-  return (
-    <section id="oss">
-      <div className="container">
-        <div className="reveal">
-          <div className="section-label">External Contribution</div>
-          <h2 className="section-title">Open Source Impact</h2>
-          <p className="section-subtitle" style={{ marginBottom: 52 }}>Maintainer-reviewed fixes in production workflow infrastructure.</p>
+      {/* ── OPEN SOURCE ──────────────────────────── */}
+      <section className="section rev" id="oss">
+        <div className="sec-header">
+          <span className="sec-label">01 · Open Source Impact</span>
+          <h2 className="sec-title">Temporal Go SDK · 4 Merged PRs</h2>
+          <p className="sec-sub">Maintainer-reviewed contributions to a production workflow runtime. Not toy fixes — each addresses a correctness, goroutine-safety, or poller-behavior bug.</p>
+          <div className="oss-view-all">
+            <a href="https://github.com/temporalio/sdk-go/pulls?q=is%3Apr+author%3Akritibehl" target="_blank" rel="noopener noreferrer" className="oss-view-link">View all Temporal PRs ↗</a>
+            <a href="https://github.com/Azure/azure-sdk-for-go/pulls?q=is%3Apr+author%3Akritibehl" target="_blank" rel="noopener noreferrer" className="oss-view-link">View all Azure PRs ↗</a>
+          </div>
+        </div>
+        <div className="oss-list">
+          {[
+            { repo:"Temporal", num:"#2298", href:"https://github.com/temporalio/sdk-go/pull/2298", title:"Fixed async future chaining where ready futures could still block callers", desc:"Resolved a bug where already-resolved futures could still cause callers to block, breaking async execution guarantees.", merged:true },
+            { repo:"Temporal", num:"#2212", href:"https://github.com/temporalio/sdk-go/pull/2212", title:"Fixed OnWorkflow mock to observe propagated context headers", desc:"Applied workflow context propagation to mock execution so OnWorkflow matchers see the same headers as real execution.", merged:true },
+            { repo:"Temporal", num:"#2200", href:"https://github.com/temporalio/sdk-go/pull/2200", title:"Fixed goroutine leak in child-workflow test environment", desc:"Child workflows could block on an unclosed doneChannel. Added idempotent closure with sync.Once and a regression test.", merged:true },
+            { repo:"Temporal", num:"#2248", href:"https://github.com/temporalio/sdk-go/pull/2248", title:"Restored workflow poller type assignment in scalable task pollers", desc:"Wired poller type assignment into scalable task pollers, restoring sticky vs non-sticky distinction used by poller balancing.", merged:true },
+            { repo:"Azure",    num:"#26051", href:"https://github.com/Azure/azure-sdk-for-go/pull/26051", title:"Surfaced silently dropped transport errors in azcore retry policy", desc:"Composed realClose() failures with request errors using errors.Join so callers can inspect retry-path failures.", merged:false },
+            { repo:"Azure",    num:"#26106", href:"https://github.com/Azure/azure-sdk-for-go/pull/26106", title:"Implemented W3C Trace Context propagation in azcore HTTP tracing", desc:"Added traceparent and tracestate propagation via OpenTelemetry propagators and validated header injection with tests.", merged:false },
+          ].map(pr => (
+            <a key={pr.num} href={pr.href} target="_blank" rel="noopener noreferrer" className={`oss-row ${pr.repo.toLowerCase()}`}>
+              <div className={`oss-badge${pr.repo === "Azure" ? " oss-badge-az" : ""}`}>{pr.repo} {pr.num}</div>
+              <div className="oss-content">
+                <div className="oss-title">{pr.title}</div>
+                <div className="oss-desc">{pr.desc}</div>
+              </div>
+              <div className={pr.merged ? "oss-merged" : "oss-review"}>{pr.merged ? "✓ Merged" : "⟳ In Review"}</div>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* ── EXPERIENCE ───────────────────────────── */}
+      <section className="section rev" id="experience">
+        <div className="sec-header">
+          <span className="sec-label">02 · Experience</span>
+          <h2 className="sec-title">Experience</h2>
+        </div>
+        <div className="exp-list">
+          {[
+            {
+              role: "Software Engineer", dates: "Feb 2026 – Present",
+              co: "Cheenti Digital LLC · Remote", current: true,
+              bullets: [
+                "Built FastAPI/Redis-backed workflow tooling processing 3,000+ weekly reporting events across AI-assisted SEO and analytics workflows, covering 5 signal types and 8 recurring issue categories",
+                "Developed AI output validation with 20+ Pydantic/JSON Schema checks, audit logs, retry-state tracking, approval-status handling, and human-review gates",
+                "Instrumented reporting workflows with structured logs, validation traces, and operational review artifacts",
+              ],
+            },
+            {
+              role: "DevSecOps Intern", dates: "Jun – Aug 2025",
+              co: "Thales Group · Plantation, FL", current: false,
+              bullets: [
+                "Built Python backend processing ~100k state-transition records per run; computed per-resource utilization, queue depth, and efficiency across HSM resource pools (payShield 10K, Luna HSM)",
+                "Replaced frontend JavaScript state computation with deterministic backend state engine; REST endpoints exposing real-time HSM state, queue depth, idle/recovery counts from PostgreSQL event logs",
+                "Implemented configurable time-window efficiency analysis (24h–N days) via delta-based evaluation; built internal dashboard for DevOps teams",
+              ],
+            },
+            {
+              role: "Graduate Assistant", dates: "Dec 2024 – Dec 2025",
+              co: "University of Florida · Gainesville, FL", current: false,
+              bullets: [
+                "Operated and improved production scheduling system used by ~600–800 weekly users; diagnosed live failures and restored correctness during active usage",
+              ],
+            },
+          ].map(e => (
+            <div key={e.role + e.co} className={`exp-card${e.current ? " current" : ""}`}>
+              <div className="exp-top">
+                <div>
+                  <div className="exp-role">
+                    {e.role}
+                    {e.current && <span className="exp-badge">Current</span>}
+                  </div>
+                  <div className="exp-co">{e.co}</div>
+                </div>
+                <div className="exp-dates">{e.dates}</div>
+              </div>
+              <ul className="exp-buls">{e.bullets.map(b => <li key={b}>{b}</li>)}</ul>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── HOW I THINK ──────────────────────────── */}
+      <section className="section rev" id="how">
+        <div className="sec-header">
+          <span className="sec-label">Methodology</span>
+          <h2 className="sec-title">How I Build Failure-Aware Systems</h2>
+        </div>
+        <div className="how-steps">
+          {[
+            { n: "01", q: "What breaks?",                  a: "Define the failure mode before writing a line of code. Stale writes. Silent regressions. Goroutine leaks. Unhealthy probes that lie." },
+            { n: "02", q: "How do we detect it?",          a: "Instrument for the failure, not the happy path. Fencing tokens, SLO gates, eval pipelines, trace timelines — designed to surface signal." },
+            { n: "03", q: "What evidence proves it?",      a: "Run it under real injected failures. 1,500+ fault scenarios, 10k+ trace validations, p95 latency under load — not unit tests on mocks." },
+            { n: "04", q: "What decision should the system make?", a: "Not an alert. A decision. BLOCK the release. REJECT the stale write. ESCALATE the unsafe answer. Automated, with audit trail." },
+            { n: "05", q: "How does an engineer debug it later?", a: "Deterministic replay. First-divergence isolation. Prometheus metrics. Named stall classification. Leave a trail that doesn't require recreating the incident." },
+          ].map(s => (
+            <div key={s.n} className="how-step">
+              <div className="how-n">{s.n}</div>
+              <div className="how-content">
+                <div className="how-q">{s.q}</div>
+                <div className="how-a">{s.a}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── PROJECTS ─────────────────────────────── */}
+      <section className="section" id="projects">
+        <div className="sec-header rev">
+          <span className="sec-label">03 · Engineering Systems</span>
+          <h2 className="sec-title">Flagship Case Studies</h2>
+          <p className="sec-sub">Problem → What I built → Verified numbers. Each project is a proof artifact, not a demo.</p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, alignItems: "start" }}>
-          {/* Left: context */}
-          <div className="reveal">
-            <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 28, marginBottom: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(129,140,248,.12)", border: "1px solid rgba(129,140,248,.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>⚙</div>
-                <div>
-                  <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 20 }}>Temporal Go SDK</div>
-                  <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-muted)" }}>temporalio/sdk-go</div>
-                </div>
-                <span className="badge-merged" style={{ marginLeft: "auto", fontSize: 11, padding: "4px 12px" }}>4 MERGED</span>
-              </div>
-              <p style={{ fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 16 }}>
-                4 merged PRs across async execution, workflow mocks, goroutine safety, and poller behavior — all reviewed by Temporal core maintainers.
-              </p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {["Go","Goroutines","Workflow Mocks","Async Execution","Concurrency"].map(t=>(
-                  <span key={t} style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-muted)", padding: "2px 8px", border: "1px solid var(--border)", borderRadius: 3 }}>{t}</span>
-                ))}
-              </div>
-            </div>
+        {/* Filters */}
+        <div className="filter-tabs rev">
+          {filters.map(f => (
+            <button
+              key={f.id}
+              className={`filter-tab${activeFilter === f.id ? " active" : ""}`}
+              onClick={() => setActiveFilter(f.id)}
+            >{f.label}</button>
+          ))}
+        </div>
 
-            <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: "22px 28px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 7, background: "rgba(56,189,248,.08)", border: "1px solid rgba(56,189,248,.18)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>☁</div>
+        {/* Flagship */}
+        {(activeFilter === "all" || visible.some(p => p.flagship)) && (
+          <div className="proj-group-label rev">Flagship</div>
+        )}
+
+        <div className="proj-flagship-list">
+          {visible.filter(p => p.flagship).map(p => (
+            <div key={p.id} className="proj-flagship rev">
+              {/* Visual */}
+              <div className="proj-visual">{visuals[p.visual]}</div>
+
+              {/* Header */}
+              <div className="pf-header">
                 <div>
-                  <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15 }}>Azure SDK for Go</div>
-                  <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-muted)" }}>Azure/azure-sdk-for-go</div>
+                  <h3 className="pf-title">{p.title}</h3>
+                  <div className="pf-tagline">{p.tagline}</div>
                 </div>
-                <span className="pill pill-blue" style={{ marginLeft: "auto" }}>2 IN REVIEW</span>
+                <div className="pf-tags">{p.tags.slice(0,5).map(t => <span key={t} className="pf-tag">{t}</span>)}</div>
               </div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {["Transport error surfacing","W3C Trace Context propagation"].map(p=>(
-                  <span key={p} style={{ fontSize: 12, color: "var(--text-muted)", padding: "4px 10px", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 4 }}>{p}</span>
+
+              {/* Metrics */}
+              <div className="pf-metrics">
+                {p.metrics.map(m => (
+                  <div key={m.label} className={`pf-metric pf-m-${m.color}`}>
+                    <div className="pfm-val">{m.val}</div>
+                    <div className="pfm-label">{m.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Detail table */}
+              <div className="pcb">
+                <div className="pcb-row"><span className="pcb-l">Problem</span><span className="pcb-t">{p.problem}</span></div>
+                <div className="pcb-row"><span className="pcb-l">Built</span><span className="pcb-t">{p.built}</span></div>
+                <div className="pcb-row"><span className="pcb-l">Verified</span><span className="pcb-res">{p.verified}</span></div>
+              </div>
+
+              {/* Links */}
+              <div className="pf-links">
+                {(p.links as [string, string][]).map(([label, href]) => (
+                  <a key={href} href={href} target="_blank" rel="noopener noreferrer" className="pcf-link-btn">{label}</a>
                 ))}
               </div>
             </div>
+          ))}
+        </div>
+
+        {/* Supporting */}
+        {visible.some(p => !p.flagship) && (
+          <>
+            <div className="proj-group-label rev" style={{marginTop:"40px"}}>Supporting Systems</div>
+            <div className="proj-support-grid">
+              {visible.filter(p => !p.flagship).map(p => (
+                <div key={p.id} className="proj-support rev">
+                  <div className="proj-visual-sm">{visuals[p.visual]}</div>
+                  <h3 className="ps-title">{p.title}</h3>
+                  <div className="ps-tagline">{p.tagline}</div>
+                  <div className="pf-metrics" style={{marginBottom:"12px"}}>
+                    {p.metrics.map(m => (
+                      <div key={m.label} className={`pf-metric pf-m-${m.color}`} style={{padding:"10px 8px"}}>
+                        <div className="pfm-val" style={{fontSize:"1rem"}}>{m.val}</div>
+                        <div className="pfm-label">{m.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="pcb">
+                    <div className="pcb-row"><span className="pcb-l">Built</span><span className="pcb-t">{p.built}</span></div>
+                    <div className="pcb-row"><span className="pcb-l">Verified</span><span className="pcb-res">{p.verified}</span></div>
+                  </div>
+                  <div className="pf-links" style={{marginTop:"12px"}}>
+                    {(p.links as [string, string][]).map(([label, href]) => (
+                      <a key={href} href={href} target="_blank" rel="noopener noreferrer" className="pcf-link-btn">{label}</a>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </section>
+
+      {/* ── SKILLS ───────────────────────────────── */}
+      <section className="section rev" id="skills">
+        <div className="sec-header">
+          <span className="sec-label">04 · Stack</span>
+          <h2 className="sec-title">Skills &amp; Stack</h2>
+        </div>
+        <div className="skills-grid">
+          {[
+            { cat:"Languages",            items:["Python","Go","C++17","SQL","Java"] },
+            { cat:"AI Evaluation",        items:["RAI gates","RAG groundedness","Hallucination checks","Tool-call validation","Latency governance"] },
+            { cat:"Backend & Platform",   items:["FastAPI","PostgreSQL","Redis","LangGraph","SQLAlchemy","Node.js"] },
+            { cat:"Reliability / SRE",    items:["Prometheus","OpenTelemetry","Jaeger","k6","Release gates","SLO validation"] },
+            { cat:"Cloud / Infra",        items:["Docker","GitHub Actions","Cloud Run","Kubernetes","Terraform","Chaos testing"] },
+            { cat:"Systems",              items:["C++17","CMake","GoogleTest","Deterministic replay","Cache/locality"] },
+          ].map(s => (
+            <div key={s.cat} className="skill-card">
+              <div className="sk-cat">{s.cat}</div>
+              <div className="sk-chips">{s.items.map(i => <span key={i} className="sk-chip">{i}</span>)}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── PROGRAMS ─────────────────────────────── */}
+      <section className="section rev" id="programs">
+        <div className="sec-header">
+          <span className="sec-label">05 · Programs</span>
+          <h2 className="sec-title">Programs &amp; Communities</h2>
+        </div>
+        <div className="programs-grid">
+          {[
+            { org: "Meta / MLH Fellowship", title: "Meta Production Engineering Fellowship", detail: "SRE Track · 2026", desc: "Production infrastructure, Linux reliability engineering, and platform operations.", accent: "#1877f2" },
+            { org: "University of Florida", title: "M.S. Computer Science", detail: "GPA 3.8 / 4.0 · Graduating Dec 2025", desc: "Distributed Systems · Networks · Algorithms · Security · NLP", accent: "#3b82f6" },
+            { org: "McKinsey Forward",      title: "McKinsey Forward Program", detail: "Selected Participant · 2026", desc: "Business and leadership development for high-potential early-career professionals.", accent: "#22c55e" },
+            { org: "Rewriting the Code",    title: "Rewriting the Code", detail: "Women in Tech Community", desc: "Selective tech community supporting women in software engineering.", accent: "#a78bfa" },
+          ].map(p => (
+            <div key={p.title} className="program-card" style={{ "--prog-accent": p.accent } as React.CSSProperties}>
+              <div className="prog-org">{p.org}</div>
+              <div className="prog-title">{p.title}</div>
+              <div className="prog-detail">{p.detail}</div>
+              <div className="prog-desc">{p.desc}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── WRITING ──────────────────────────────── */}
+      <section className="section rev" id="writing">
+        <div className="sec-header">
+          <span className="sec-label">06 &middot; Engineering Writing</span>
+          <h2 className="sec-title">Engineering Writing</h2>
+          <p className="sec-sub">Lessons from building systems that fail, recover, and evolve in production.</p>
+        </div>
+
+        <div className="writing-stats rev">
+          <div className="wst-item"><span className="wst-val">12+</span><span className="wst-label">Technical Articles</span></div>
+          <div className="wst-div"/>
+          <div className="wst-item"><span className="wst-val">20k+</span><span className="wst-label">Words Published</span></div>
+          <div className="wst-div"/>
+          <div className="wst-topics">Distributed Systems &middot; Reliability &middot; AI Infrastructure</div>
+        </div>
+
+        <div className="writing-cards">
+          {[
+            {
+              href: "https://medium.com/@kriti0608/how-i-built-a-distributed-job-queue-that-stays-correct-under-crashes-races-and-network-faults-48bc50eec723",
+              topic: "Distributed Systems",
+              topicColor: "blue",
+              title: "How I Built a Distributed Job Queue That Stays Correct Under Crashes, Races, and Network Faults",
+              sub: "Exactly-once-style correctness requires fencing tokens, validation, and failure injection.",
+              read: "8 min read",
+            },
+            {
+              href: "https://medium.com/@kriti0608/kubernetes-said-everything-was-healthy-it-wasnt-27f7b4b9ed0e",
+              topic: "Reliability Engineering / SRE",
+              topicColor: "amber",
+              title: "Kubernetes Said Everything Was Healthy. It Wasn't.",
+              sub: "Green readiness probes do not guarantee healthy user experience.",
+              read: "6 min read",
+            },
+            {
+              href: "https://medium.com/@kriti0608/the-most-dangerous-ai-failures-dont-crash-they-quietly-look-correct-a404e343395a",
+              topic: "AI Infrastructure",
+              topicColor: "violet",
+              title: "The Most Dangerous AI Failures Don't Crash — They Quietly Look Correct",
+              sub: "Silent regressions are often more dangerous than outages because they appear successful.",
+              read: "7 min read",
+            },
+          ].map(w => (
+            <a key={w.href} href={w.href} target="_blank" rel="noopener noreferrer" className={`writing-card wc-${w.topicColor}`}>
+              <div className={`wc-topic wc-topic-${w.topicColor}`}>{w.topic}</div>
+              <div className="wc-title">{w.title}</div>
+              <div className="wc-sub">{w.sub}</div>
+              <div className="wc-footer">
+                <span className="wc-read">{w.read}</span>
+                <span className="wc-cta">Read on Medium &#x2197;</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* ── CONTACT / CTA ────────────────────────── */}
+      <section className="section rev" id="contact">
+        <div className="contact-block">
+          <div className="cb-top-label">Let&apos;s build something that fails loudly.</div>
+          <h2 className="cb-headline">
+            I build systems that fail loudly, recover safely,<br/>
+            and block unsafe releases before users are impacted.
+          </h2>
+          <p className="cb-sub">Looking for backend/platform, SRE, AI evaluation, and reliability engineering roles. New grad · Dec 2025 · Open to relocation · US work authorized</p>
+          <div className="cb-btns">
+            <a href="/resume.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-primary">Download Resume</a>
+            <a href="https://github.com/kritibehl" target="_blank" rel="noopener noreferrer" className="btn btn-ghost">View GitHub ↗</a>
+            <a href="mailto:kriti0608@gmail.com" className="btn btn-ghost">Contact Me</a>
           </div>
-
-          {/* Right: PR wall */}
-          <div className="reveal" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {prs.map((pr, i) => (
-              <div key={i} style={{
-                background: "var(--card)", border: "1px solid var(--border)", borderRadius: 10, padding: "18px 20px",
-                transition: "border-color .2s, transform .2s", cursor: "default",
-              }}
-                onMouseEnter={e=>{ e.currentTarget.style.borderColor="rgba(129,140,248,.4)"; e.currentTarget.style.transform="translateX(4px)"; }}
-                onMouseLeave={e=>{ e.currentTarget.style.borderColor="var(--border)"; e.currentTarget.style.transform="translateX(0)"; }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--indigo)", fontWeight: 700 }}>temporal {pr.num}</span>
-                  <span className="badge-merged">● MERGED</span>
-                </div>
-                <div style={{ fontWeight: 600, fontSize: 15, color: "var(--text-primary)", marginBottom: 5 }}>{pr.title}</div>
-                <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 10 }}>{pr.desc}</div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {pr.tags.map(t=><span key={t} style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-muted)", padding: "1px 6px", border: "1px solid var(--border)", borderRadius: 3 }}>{t}</span>)}
-                </div>
-              </div>
+          <div className="cb-links-row">
+            {[
+              ["https://github.com/kritibehl",        "GitHub ↗"],
+              ["https://www.linkedin.com/in/kriti-behl",  "LinkedIn ↗"],
+              ["https://medium.com/@kriti0608",       "Medium ↗"],
+              ["https://huggingface.co/kriti0608/FairEval",    "HuggingFace ↗"],
+              ["mailto:kriti0608@gmail.com",          "Email ↗"],
+            ].map(([h,l]) => (
+              <a key={h} href={h} target="_blank" rel="noopener noreferrer" className="cb-text-link">{l}</a>
             ))}
           </div>
         </div>
-      </div>
-    </section>
-  );
-}
+      </section>
 
-// ── EXPERIENCE (timeline) ─────────────────────────────────────────────────────
-function ExperienceSection() {
-  const jobs = [
-    {
-      year: "2026", company: "Meta Production Engineering Fellowship", role: "SRE Track · MLH Fellowship",
-      color: "var(--indigo)", status: "FELLOWSHIP",
-      bullets: ["Production infrastructure, Linux reliability engineering, incident response, and platform operations."],
-      tags: ["SRE","Linux","Production Engineering","Incident Response"],
-    },
-    {
-      year: "2025–Now", company: "Cheenti Digital LLC", role: "Software Engineer",
-      color: "var(--green)", status: "ACTIVE",
-      bullets: [
-        "Built FastAPI/Redis workflow tooling processing 3,000+ weekly reporting events across AI-assisted SEO and analytics workflows.",
-        "Developed AI output validation with Pydantic/JSON Schema checks, audit logs, retry-state tracking, and human-review gates.",
-      ],
-      tags: ["FastAPI","Redis","Python","Pydantic","AI Validation"],
-    },
-    {
-      year: "Jun–Aug 2025", company: "Thales Group", role: "DevSecOps Intern",
-      color: "var(--blue)", status: "COMPLETED",
-      metric: { value: "100k+", label: "state-transition records/run" },
-      bullets: [
-        "Built Python/PostgreSQL backend processing ~100k HSM state-transition records per run.",
-        "Replaced frontend state computation with deterministic backend state engine exposing queue depth, utilization, idle/recovery, and efficiency metrics.",
-      ],
-      tags: ["Python","PostgreSQL","HSM","State Machines","DevSecOps"],
-    },
-  ];
-
-  return (
-    <section id="experience" style={{ background: "var(--bg-section)" }}>
-      <div className="container">
-        <div className="reveal">
-          <div className="section-label">Where I've Shipped</div>
-          <h2 className="section-title">Experience</h2>
-        </div>
-
-        <div style={{ position: "relative", marginTop: 56, paddingLeft: 32 }}>
-          {/* Vertical line */}
-          <div style={{ position: "absolute", left: 0, top: 8, bottom: 8, width: 1, background: "linear-gradient(to bottom, var(--blue), var(--indigo), transparent)" }} />
-
-          {jobs.map((job, i) => (
-            <div key={i} className="reveal" style={{ position: "relative", marginBottom: 36, animationDelay: `${i*.1}s` }}>
-              {/* Dot */}
-              <div style={{ position: "absolute", left: -36, top: 24, width: 10, height: 10, borderRadius: "50%", background: job.color, border: `2px solid var(--bg-section)`, boxShadow: `0 0 12px ${job.color}88` }} />
-              {/* Year */}
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-muted)", letterSpacing: ".1em", marginBottom: 10 }}>{job.year}</div>
-
-              <div className="card">
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-                      <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 22 }}>{job.company}</div>
-                      <span className="pill" style={{ background: `${job.color}18`, color: job.color, border: `1px solid ${job.color}33`, fontSize: 9, letterSpacing: ".08em" }}>{job.status}</span>
-                    </div>
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-muted)" }}>{job.role}</div>
-                  </div>
-                  {job.metric && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(56,189,248,.06)", border: "1px solid rgba(56,189,248,.12)", borderRadius: 8, padding: "10px 16px" }}>
-                      <span style={{ fontFamily: "var(--font-display)", fontSize: 30, fontWeight: 800, color: "var(--blue)" }}>{job.metric.value}</span>
-                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-muted)", maxWidth: 100, lineHeight: 1.4 }}>{job.metric.label}</span>
-                    </div>
-                  )}
-                </div>
-                <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
-                  {job.bullets.map((b,bi)=>(
-                    <li key={bi} style={{ display: "flex", gap: 10, fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.65 }}>
-                      <span style={{ color: job.color, flexShrink: 0, marginTop: 3 }}>→</span>{b}
-                    </li>
-                  ))}
-                </ul>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {job.tags.map(t=><span key={t} style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-muted)", padding: "2px 8px", border: "1px solid var(--border)", borderRadius: 3 }}>{t}</span>)}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ── FAULTLINE ─────────────────────────────────────────────────────────────────
-function FaultlineViz() {
-  const [tick, setTick] = useState(0);
-  useEffect(() => { const id = setInterval(() => setTick(t => t + 1), 900); return () => clearInterval(id); }, []);
-  const validStep = tick % 6;
-  const staleBlocked = tick % 6 === 5;
-
-  const validSteps = ["Worker claims job","Lease assigned","Fencing token issued","Worker commits","PostgreSQL validates"];
-  const staleSteps = ["Stale worker active","Lease expired","Token invalidated","Stale write attempt"];
-
-  return (
-    <div>
-      {/* Benchmark bar */}
-      <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, padding: "16px 20px", marginBottom: 16 }}>
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-muted)", letterSpacing: ".1em", marginBottom: 12 }}>DUPLICATE COMMITS — NAIVE vs FAULTLINE</div>
-        <div style={{ marginBottom: 8 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-muted)" }}>Naive system</span>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--red)" }}>8.3%</span>
-          </div>
-          <div style={{ height: 8, background: "var(--border)", borderRadius: 4 }}>
-            <div style={{ width: "83%", height: "100%", background: "var(--red)", borderRadius: 4 }} />
-          </div>
-        </div>
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-muted)" }}>Faultline</span>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--green)", fontWeight: 700 }}>0.0%</span>
-          </div>
-          <div style={{ height: 8, background: "var(--border)", borderRadius: 4 }}>
-            <div style={{ width: "1%", height: "100%", background: "var(--green)", borderRadius: 4 }} />
-          </div>
-        </div>
+      <div className="footer-note rev">
+        Logos / program names shown for experience, programs, open-source ecosystems, and hosted project platforms.
       </div>
 
-      {/* Live paths */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, padding: "16px" }}>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--green)", letterSpacing: ".12em", marginBottom: 12 }}>▶ VALID PATH</div>
-          {validSteps.map((s,i)=>(
-            <div key={i}>
-              <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "5px 8px", borderRadius: 5, background: validStep > i ? "rgba(34,197,94,.07)" : "transparent", transition: "background .3s" }}>
-                <div style={{ width: 5, height: 5, borderRadius: "50%", background: validStep > i ? "var(--green)" : "var(--border)", transition: "background .3s", flexShrink: 0 }} />
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: validStep > i ? "var(--text-secondary)" : "var(--text-muted)" }}>{s}</span>
-              </div>
-              {i < validSteps.length - 1 && <div style={{ width: 1, height: 5, background: "var(--border)", margin: "0 0 0 11px" }} />}
-            </div>
-          ))}
-          <div style={{ marginTop: 6, padding: "6px 10px", borderRadius: 5, background: validStep >= 5 ? "rgba(34,197,94,.12)" : "rgba(34,197,94,.03)", border: `1px solid ${validStep >= 5 ? "rgba(34,197,94,.35)" : "rgba(34,197,94,.1)"}`, fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--green)", textAlign: "center", fontWeight: 700, transition: "all .3s" }}>ACCEPTED</div>
-        </div>
-
-        <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, padding: "16px" }}>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--red)", letterSpacing: ".12em", marginBottom: 12 }}>✕ STALE WORKER</div>
-          {staleSteps.map((s,i)=>(
-            <div key={i}>
-              <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "5px 8px", borderRadius: 5 }}>
-                <div style={{ width: 5, height: 5, borderRadius: "50%", background: "rgba(239,68,68,.4)", flexShrink: 0 }} />
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-muted)" }}>{s}</span>
-              </div>
-              {i < staleSteps.length - 1 && <div style={{ width: 1, height: 5, background: "var(--border)", margin: "0 0 0 11px" }} />}
-            </div>
-          ))}
-          <div style={{ marginTop: 6, padding: "6px 10px", borderRadius: 5, background: staleBlocked ? "rgba(239,68,68,.15)" : "rgba(239,68,68,.04)", border: `1px solid ${staleBlocked ? "rgba(239,68,68,.5)" : "rgba(239,68,68,.15)"}`, fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--red)", textAlign: "center", fontWeight: 700, animation: staleBlocked ? "glow-red 1s infinite" : "none", transition: "all .3s" }}>WRITE REJECTED</div>
-        </div>
-      </div>
     </div>
-  );
-}
-
-// ── KUBEPULSE VIZ ─────────────────────────────────────────────────────────────
-function KubePulseViz() {
-  const [phase, setPhase] = useState<"ok"|"spiking"|"blocked">("ok");
-  useEffect(() => {
-    const sequence = () => {
-      setPhase("ok");
-      setTimeout(() => setPhase("spiking"), 1500);
-      setTimeout(() => setPhase("blocked"), 3000);
-      setTimeout(sequence, 6000);
-    };
-    sequence();
-  }, []);
-
-  // Sparkline data
-  const baseline = [12,14,13,15,14,13,16,14,15,13,14];
-  const spike =    [12,14,13,15,14,13,16,54,89,96,102];
-
-  const points = (data: number[], w: number, h: number) =>
-    data.map((v,i) => `${(i/(data.length-1))*w},${h - (v/110)*h}`).join(" ");
-
-  return (
-    <div>
-      {/* Big decision badge */}
-      <div style={{
-        background: phase === "blocked" ? "rgba(239,68,68,.08)" : phase === "spiking" ? "rgba(245,158,11,.06)" : "rgba(34,197,94,.06)",
-        border: `1px solid ${phase === "blocked" ? "rgba(239,68,68,.4)" : phase === "spiking" ? "rgba(245,158,11,.3)" : "rgba(34,197,94,.2)"}`,
-        borderRadius: 12, padding: "20px", marginBottom: 14, textAlign: "center",
-        animation: phase === "blocked" ? "glow-red 2s infinite" : "none",
-        transition: "all .5s",
-      }}>
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-muted)", marginBottom: 6 }}>RELEASE #428</div>
-        <div style={{ fontFamily: "var(--font-display)", fontSize: 52, fontWeight: 800, color: phase === "blocked" ? "var(--red)" : phase === "spiking" ? "var(--amber)" : "var(--green)", lineHeight: 1, transition: "color .5s" }}>
-          {phase === "blocked" ? "BLOCK" : phase === "spiking" ? "WARN" : "SHIP"}
-        </div>
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
-          {phase === "blocked" ? "safe_to_operate=false" : phase === "spiking" ? "p95 drift detected" : "all signals nominal"}
-        </div>
-      </div>
-
-      {/* Latency graph */}
-      <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, padding: "14px 16px", marginBottom: 12 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-muted)" }}>p95 LATENCY (ms)</span>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: phase === "blocked" ? "var(--red)" : "var(--text-muted)" }}>
-            {phase === "blocked" ? "+608% ↑" : phase === "spiking" ? "rising…" : "nominal"}
-          </span>
-        </div>
-        <svg viewBox="0 0 200 48" style={{ width: "100%", height: 48 }}>
-          <polyline points={points(baseline, 200, 48)} fill="none" stroke="rgba(34,197,94,.4)" strokeWidth="1.5" />
-          {phase !== "ok" && <polyline points={points(spike, 200, 48)} fill="none" stroke={phase === "blocked" ? "var(--red)" : "var(--amber)"} strokeWidth="2" style={{ transition: "stroke 0.5s" }} />}
-        </svg>
-      </div>
-
-      {/* Health grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-        {[
-          { label: "Readiness Probe", value: "GREEN", color: "var(--green)" },
-          { label: "Latency p95", value: phase === "blocked" ? "+608% ↑" : phase === "spiking" ? "RISING" : "OK", color: phase !== "ok" ? "var(--red)" : "var(--green)" },
-          { label: "Dep Health", value: phase === "blocked" ? "DEGRADED" : "OK", color: phase === "blocked" ? "var(--amber)" : "var(--green)" },
-          { label: "Gate Decision", value: phase === "blocked" ? "BLOCK" : phase === "spiking" ? "WARN" : "SHIP", color: phase === "blocked" ? "var(--red)" : phase === "spiking" ? "var(--amber)" : "var(--green)" },
-        ].map(h=>(
-          <div key={h.label} style={{ background: "var(--bg)", border: `1px solid ${h.color === "var(--red)" ? "rgba(239,68,68,.25)" : "var(--border)"}`, borderRadius: 7, padding: "10px 12px", transition: "border-color .4s" }}>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-muted)", letterSpacing: ".08em", marginBottom: 3 }}>{h.label}</div>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 700, color: h.color, transition: "color .4s" }}>{h.value}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ── FAIREVAL VIZ ──────────────────────────────────────────────────────────────
-function FairEvalViz() {
-  const models = [
-    { name: "Claude 3.5", score: 0.91, d: "SHIP" },
-    { name: "GPT-4o",     score: 0.85, d: "SHIP" },
-    { name: "Gemini Flash", score: 0.68, d: "BLOCK" },
-  ];
-  const risks = ["Hallucination Risk","Instruction Failure","Groundedness","Safety Gate","Regression p=0.0"];
-
-  return (
-    <div>
-      <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-muted)", letterSpacing: ".1em", marginBottom: 12 }}>EVALUATION LEADERBOARD</div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-        {models.map(m=>(
-          <div key={m.name} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "var(--bg)", border: `1px solid ${m.d === "BLOCK" ? "rgba(239,68,68,.3)" : "var(--border)"}`, borderRadius: 8, animation: m.d === "BLOCK" ? "glow-red 3s infinite" : "none" }}>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 600, width: 110, color: "var(--text-primary)" }}>{m.name}</span>
-            <div style={{ flex: 1, height: 6, background: "var(--border)", borderRadius: 3 }}>
-              <div style={{ width: `${m.score*100}%`, height: "100%", borderRadius: 3, background: m.d === "BLOCK" ? "var(--red)" : "var(--green)" }} />
-            </div>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, width: 34, color: m.d === "BLOCK" ? "var(--red)" : "var(--green)", fontWeight: 700 }}>{m.score.toFixed(2)}</span>
-            <span className={m.d === "BLOCK" ? "badge-block" : "badge-ship"} style={{ fontSize: 9, padding: "2px 7px" }}>{m.d}</span>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, padding: "14px 16px" }}>
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-muted)", letterSpacing: ".1em", marginBottom: 10 }}>RESPONSIBLE AI GATE</div>
-        {risks.map(r=>(
-          <div key={r} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid var(--border-subtle)" }}>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-secondary)" }}>{r}</span>
-            <div style={{ width: 7, height: 7, borderRadius: "50%", background: r.includes("Risk") || r.includes("Failure") ? "var(--red)" : "var(--green)" }} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ── AGENTGRID VIZ ─────────────────────────────────────────────────────────────
-function AgentGridViz() {
-  const [active, setActive] = useState(0);
-  const nodes = ["Request","Retrieve context","Agent decision","Tool call","Eval gate","Route outcome"];
-  const routes = [
-    { c: "Context retrieved", a: "→ SHIP", col: "var(--green)" },
-    { c: "Missing context",   a: "→ HOLD", col: "var(--amber)" },
-    { c: "Unsafe answer",     a: "→ ESCALATE", col: "var(--red)" },
-    { c: "Tool failure",      a: "→ RETRY", col: "var(--blue)" },
-  ];
-  useEffect(() => { const id = setInterval(() => setActive(a=>(a+1)%nodes.length), 1000); return () => clearInterval(id); }, []);
-
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-      <div>
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-muted)", letterSpacing: ".1em", marginBottom: 10 }}>WORKFLOW GRAPH</div>
-        {nodes.map((n,i)=>(
-          <div key={i}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 6, background: active===i ? "rgba(56,189,248,.08)" : "transparent", border: `1px solid ${active===i ? "rgba(56,189,248,.3)" : "transparent"}`, transition: "all .3s" }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: active===i ? "var(--blue)" : "var(--border)", boxShadow: active===i ? "0 0 8px var(--blue)" : "none", transition: "all .3s", flexShrink: 0 }} />
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: active===i ? "var(--text-primary)" : "var(--text-muted)", transition: "color .3s" }}>{n}</span>
-            </div>
-            {i < nodes.length-1 && <div style={{ width: 1, height: 5, background: "var(--border)", margin: "1px 0 1px 13px" }} />}
-          </div>
-        ))}
-      </div>
-      <div>
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-muted)", letterSpacing: ".1em", marginBottom: 10 }}>ROUTING</div>
-        {routes.map(r=>(
-          <div key={r.c} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 10px", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 5, marginBottom: 6 }}>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-secondary)" }}>{r.c}</span>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, color: r.col }}>{r.a}</span>
-          </div>
-        ))}
-        <div style={{ marginTop: 12, padding: "10px 12px", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, textAlign: "center" }}>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: "var(--green)" }}>48</div>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-muted)" }}>passing tests</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── CASE STUDY CARD ───────────────────────────────────────────────────────────
-function CaseStudy({ num, name, tagline, pill, pillClass, problem, built, metrics, tags, viz, accent }:
-  { num: string; name: string; tagline: string; pill: string; pillClass: string; problem: string; built: string; metrics: {v:string;l:string}[]; tags: string[]; viz: React.ReactNode; accent: string }) {
-  return (
-    <div className="reveal" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 18, overflow: "hidden", marginBottom: 28, position: "relative" }}>
-      {/* Top accent line */}
-      <div style={{ height: 3, background: accent }} />
-
-      <div style={{ padding: "28px 32px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
-            <h3 style={{ fontFamily: "var(--font-display)", fontSize: 32, fontWeight: 800, letterSpacing: "-.02em" }}>{name}</h3>
-            <span className={`pill ${pillClass}`} style={{ fontSize: 10 }}>{pill}</span>
-          </div>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--text-muted)" }}>{tagline}</div>
-        </div>
-        <div style={{ display: "flex", gap: 20 }}>
-          {metrics.map(m=>(
-            <div key={m.l} style={{ textAlign: "center" }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 800, color: accent, lineHeight: 1 }}>{m.v}</div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-muted)", letterSpacing: ".06em", marginTop: 3 }}>{m.l}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
-        {/* Left: prose */}
-        <div style={{ padding: "28px 32px", borderRight: "1px solid var(--border)" }}>
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--red)", letterSpacing: ".12em", marginBottom: 8 }}>PROBLEM</div>
-            <p style={{ fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.75 }}>{problem}</p>
-          </div>
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--blue)", letterSpacing: ".12em", marginBottom: 8 }}>BUILT</div>
-            <p style={{ fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.75 }}>{built}</p>
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: "auto" }}>
-            {tags.map(t=><span key={t} style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-muted)", padding: "2px 8px", border: "1px solid var(--border)", borderRadius: 3 }}>{t}</span>)}
-          </div>
-        </div>
-        {/* Right: viz */}
-        <div style={{ padding: "28px 32px" }}>{viz}</div>
-      </div>
-    </div>
-  );
-}
-
-function CaseStudiesSection() {
-  return (
-    <section id="case-studies">
-      <div className="container">
-        <div className="reveal">
-          <div className="section-label">Product-Quality Engineering</div>
-          <h2 className="section-title">Engineering Case Studies</h2>
-          <p className="section-subtitle" style={{ marginBottom: 56 }}>Each system proves one thesis: correctness and reliability aren't accidents.</p>
-        </div>
-
-        <CaseStudy
-          num="01" name="Faultline" tagline="Distributed correctness under failure"
-          pill="CASE STUDY 01" pillClass="pill-green"
-          problem="Stale workers can commit outdated results after lease takeover, causing duplicate work and data corruption in distributed job queues."
-          built="PostgreSQL-backed fencing-token execution system with fault injection, reconciliation, invariant validation, and Prometheus observability."
-          metrics={[{v:"0.0%",l:"Dup Commits"},{v:"1,500+",l:"Fault Scenarios"},{v:"0",l:"Invariants Violated"}]}
-          tags={["Distributed Systems","PostgreSQL","Concurrency","Fault Injection","Fencing Tokens","Prometheus","Go"]}
-          accent="var(--green)"
-          viz={<FaultlineViz />}
-        />
-
-        <CaseStudy
-          num="02" name="KubePulse" tagline="Release gates for systems that look healthy but are not"
-          pill="CASE STUDY 02" pillClass="pill-amber"
-          problem="Kubernetes readiness probes can stay green while latency spikes, dependencies degrade, and users experience real failures."
-          built="Release-safety gate using latency drift, dependency health scoring, network diagnostics, and automated SHIP/BLOCK decisions."
-          metrics={[{v:"+608%",l:"p95 Blocked"},{v:"+333%",l:"p95 Drift Caught"},{v:"false",l:"safe_to_operate"}]}
-          tags={["Kubernetes","SRE","Release Safety","CI/CD","Canary Analysis","Prometheus"]}
-          accent="var(--amber)"
-          viz={<KubePulseViz />}
-        />
-
-        <CaseStudy
-          num="03" name="FairEval" tagline="AI release governance for silent model regressions"
-          pill="CASE STUDY 03" pillClass="pill-indigo"
-          problem="GenAI regressions often ship silently: unsupported claims, hallucinated facts, safety failures, and latency regressions."
-          built="LLM evaluation and release-governance platform with RAG groundedness, Responsible AI gates, statistical regression checks, and SHIP/BLOCK decisions."
-          metrics={[{v:"BLOCK",l:"Gemini Flash"},{v:"p=0.0",l:"Regression Signal"},{v:"RAI",l:"Gate Active"}]}
-          tags={["AI Evaluation","ML Infrastructure","Responsible AI","RAG","Statistical Testing","Python"]}
-          accent="var(--indigo)"
-          viz={<FairEvalViz />}
-        />
-
-        <CaseStudy
-          num="04" name="AgentGrid" tagline="Agent workflows that route, validate, and escalate"
-          pill="CASE STUDY 04" pillClass="pill-blue"
-          problem="AI workflows fail when retrieval misses, tool calls break, or unsupported answers ship without escalation."
-          built="Agent workflow platform with retrieval, tool calls, evaluation gates, decision routing, and escalation paths across 48 test scenarios."
-          metrics={[{v:"48",l:"Passing Tests"},{v:"0",l:"Unsafe Ships"},{v:"4",l:"Route Types"}]}
-          tags={["LangGraph","RAG","Tool Calling","Workflow Orchestration","Evaluation","Python"]}
-          accent="var(--blue)"
-          viz={<AgentGridViz />}
-        />
-      </div>
-    </section>
-  );
-}
-
-// ── SYSTEMS DEPTH ─────────────────────────────────────────────────────────────
-function SystemsSection() {
-  const cards = [
-    { name: "DetTrace", tagline: "Replay diagnostics and first-divergence isolation", color: "var(--blue)",
-      proof: [{v:"Index 3",l:"Divergence Isolated"},{v:"1.0",l:"Replay Confidence"}],
-      tags: ["C++17","Replay","Concurrency","Diagnostics"] },
-    { name: "AccelSim-Lite", tagline: "C++ runtime and bottleneck validation", color: "var(--indigo)",
-      proof: [{v:"25.65×",l:"Pointer Slowdown"},{v:"2.4×",l:"Mem Degradation"}],
-      tags: ["C++17","CMake","GoogleTest","Cache Locality"] },
-    { name: "AutoOps-Insight", tagline: "CI failure intelligence and incident clustering", color: "var(--amber)",
-      proof: [{v:"102",l:"Incidents Tracked"},{v:"0.91",l:"Failure Confidence"}],
-      tags: ["FastAPI","PostgreSQL","SQL Analytics"] },
-  ];
-
-  return (
-    <section id="systems" style={{ background: "var(--bg-section)" }}>
-      <div className="container">
-        <div className="reveal">
-          <div className="section-label">Systems Depth</div>
-          <h2 className="section-title">Deep Systems Work</h2>
-          <p className="section-subtitle" style={{ marginBottom: 52 }}>Supporting work demonstrating systems depth below the flagship case studies.</p>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20 }}>
-          {cards.map((c,i)=>(
-            <div key={i} className="reveal card" style={{ animationDelay: `${i*.1}s` }}>
-              <div style={{ width: 40, height: 4, borderRadius: 2, background: c.color, marginBottom: 16 }} />
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, marginBottom: 6 }}>{c.name}</div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-muted)", marginBottom: 20, lineHeight: 1.5 }}>{c.tagline}</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16 }}>
-                {c.proof.map(p=>(
-                  <div key={p.l} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 7, padding: "10px 12px" }}>
-                    <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 800, color: c.color }}>{p.v}</div>
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-muted)", marginTop: 2 }}>{p.l}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                {c.tags.map(t=><span key={t} style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-muted)", padding: "2px 6px", border: "1px solid var(--border)", borderRadius: 3 }}>{t}</span>)}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ── SURFACE AREA ──────────────────────────────────────────────────────────────
-function SurfaceAreaSection() {
-  const [hov, setHov] = useState<number|null>(null);
-  const clusters = [
-    { name: "Distributed Systems", color: "var(--blue)",   items: ["Faultline","Temporal OSS","PostgreSQL","Workflow Correctness"] },
-    { name: "Reliability Eng",     color: "var(--green)",  items: ["KubePulse","AutoOps","Prometheus","Release Gates"] },
-    { name: "AI Infrastructure",   color: "var(--indigo)", items: ["FairEval","AgentGrid","RAG Evaluation","Responsible AI"] },
-    { name: "Systems & Runtime",   color: "var(--amber)",  items: ["DetTrace","AccelSim-Lite","C++17","Runtime Validation"] },
-    { name: "Cloud & Platform",    color: "var(--blue)",   items: ["Cloud Run","Kubernetes","Terraform","CI/CD"] },
-    { name: "Networking",          color: "var(--green)",  items: ["NetRouteLab","DNS","TCP","TLS"] },
-    { name: "Hardware-Adjacent",   color: "var(--amber)",  items: ["HSM Analytics","UART/SPI/I2C","Instrument Validation"] },
-    { name: "Open Source",         color: "var(--indigo)", items: ["Temporal","Azure SDK","Go"] },
-  ];
-
-  return (
-    <section id="surface">
-      <div className="container">
-        <div className="reveal">
-          <div className="section-label">Breadth with Identity</div>
-          <h2 className="section-title">Engineering Surface Area</h2>
-          <p className="section-subtitle" style={{ marginBottom: 52 }}>One identity, broad systems coverage.</p>
-        </div>
-
-        <div className="reveal" style={{ textAlign: "center", marginBottom: 36 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", padding: "16px 40px", background: "var(--card)", border: "1px solid rgba(56,189,248,.4)", borderRadius: 12, fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 700, color: "var(--blue)", animation: "glow-blue 3s infinite" }}>
-            Correctness Under Failure
-          </div>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
-          {clusters.map((c,i)=>(
-            <div key={i} className="reveal card" style={{ cursor: "default", borderColor: hov===i ? c.color+"55" : "var(--border)", animationDelay: `${i*.06}s` }}
-              onMouseEnter={()=>setHov(i)} onMouseLeave={()=>setHov(null)}>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, color: c.color, letterSpacing: ".08em", marginBottom: 12 }}>{c.name}</div>
-              {c.items.map(it=>(
-                <div key={it} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-secondary)", marginBottom: 5 }}>
-                  <span style={{ width: 3, height: 3, borderRadius: "50%", background: c.color, flexShrink: 0 }} />{it}
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ── SKILLS ────────────────────────────────────────────────────────────────────
-function SkillsSection() {
-  const groups = [
-    { label: "Build",   color: "var(--blue)",   skills: ["Python","Go","FastAPI","PostgreSQL","Redis","REST","React","TypeScript"] },
-    { label: "Validate",color: "var(--green)",  skills: ["pytest","GoogleTest","CI Gates","Schema Checks","Fault Injection","Pydantic"] },
-    { label: "Observe", color: "var(--amber)",  skills: ["Prometheus","Grafana","OpenTelemetry","Logs","Traces","Alerting"] },
-    { label: "Operate", color: "var(--indigo)", skills: ["Docker","Kubernetes","Terraform","GitHub Actions","Cloud Run","Linux"] },
-    { label: "Reason",  color: "var(--red)",    skills: ["Distributed Systems","Release Safety","AI Evaluation","Failure Modes"] },
-    { label: "Systems", color: "var(--blue)",   skills: ["C++17","CMake","Deterministic Replay","Perf Analysis","Cache Locality"] },
-  ];
-
-  return (
-    <section style={{ background: "var(--bg-section)" }}>
-      <div className="container">
-        <div className="reveal">
-          <div className="section-label">Technical Breadth</div>
-          <h2 className="section-title">Skills Map</h2>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 18, marginTop: 48 }}>
-          {groups.map((g,i)=>(
-            <div key={i} className="reveal card" style={{ animationDelay: `${i*.07}s` }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: g.color, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ width: 24, height: 2, background: g.color, display: "inline-block", borderRadius: 1 }} />{g.label}
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {g.skills.map(s=>(
-                  <span key={s} style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-secondary)", padding: "4px 10px", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 4, cursor: "default", transition: "all .2s" }}
-                    onMouseEnter={e=>{e.currentTarget.style.borderColor=g.color;e.currentTarget.style.color=g.color;}}
-                    onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.color="var(--text-secondary)";}}>
-                    {s}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ── WRITING ───────────────────────────────────────────────────────────────────
-function WritingSection() {
-  const articles = [
-    { title: "How I Built a Distributed Job Queue That Stays Correct Under Crashes", takeaway: "Exactly-once-style correctness needs fencing, validation, and failure injection.", tag: "Distributed Systems", color: "var(--blue)" },
-    { title: "Detecting Silent Regressions in GenAI Systems at Scale", takeaway: "AI evaluation should behave like release-safety infrastructure.", tag: "AI Infrastructure", color: "var(--indigo)" },
-    { title: "I Thought I Built Observability. Then an Incident Proved I Didn't.", takeaway: "Green dashboards are not the same as operational truth.", tag: "SRE / Observability", color: "var(--amber)" },
-  ];
-
-  return (
-    <section id="writing">
-      <div className="container">
-        <div className="reveal">
-          <div className="section-label">Engineering Writing</div>
-          <h2 className="section-title">Writing</h2>
-          <p className="section-subtitle" style={{ marginBottom: 52 }}>Technical articles from production experience.</p>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20 }}>
-          {articles.map((a,i)=>(
-            <div key={i} className="reveal card" style={{ cursor: "pointer", position: "relative", overflow: "hidden", animationDelay: `${i*.1}s`, transition: "all .25s" }}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor=a.color+"55";e.currentTarget.style.transform="translateY(-5px)";}}
-              onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="translateY(0)";}}>
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: a.color }} />
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: a.color, letterSpacing: ".1em", display: "block", marginBottom: 12 }}>{a.tag}</span>
-              <h3 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, lineHeight: 1.3, marginBottom: 12 }}>{a.title}</h3>
-              <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.65, marginBottom: 16 }}>Takeaway: {a.takeaway}</p>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: a.color }}>Read →</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ── LOGO WALL ─────────────────────────────────────────────────────────────────
-function LogoWall() {
-  const logos = ["Temporal","Azure","Meta","MLH","Rewriting the Code","McKinsey","University of Florida","Thales","GitHub","Hugging Face"];
-  return (
-    <section style={{ background: "var(--bg-section)", padding: "64px 0", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}>
-      <div className="container">
-        <div className="reveal" style={{ textAlign: "center", marginBottom: 36 }}>
-          <div className="section-label" style={{ justifyContent: "center", display: "flex" }}>Trusted Networks</div>
-        </div>
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 12 }}>
-          {logos.map(l=>(
-            <div key={l} style={{
-              padding: "10px 20px", background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
-              fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700,
-              color: "var(--text-muted)", letterSpacing: ".06em",
-              transition: "all .2s", cursor: "default",
-            }}
-              onMouseEnter={e=>{e.currentTarget.style.color="var(--blue)";e.currentTarget.style.borderColor="rgba(56,189,248,.3)";}}
-              onMouseLeave={e=>{e.currentTarget.style.color="var(--text-muted)";e.currentTarget.style.borderColor="var(--border)";}}>
-              {l}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ── PROGRAMS ──────────────────────────────────────────────────────────────────
-function ProgramsSection() {
-  const items = [
-    { name: "Meta Production Engineering Fellowship", sub: "MLH · SRE Track · 2026", icon: "◈", color: "var(--indigo)" },
-    { name: "Rewriting the Code", sub: "Women in Tech · 2026", icon: "◇", color: "var(--blue)" },
-    { name: "McKinsey Forward", sub: "Selected Participant · 2026", icon: "◆", color: "var(--amber)" },
-    { name: "University of Florida", sub: "M.S. Computer Science · GPA 3.8", icon: "◉", color: "var(--green)" },
-  ];
-  return (
-    <section>
-      <div className="container">
-        <div className="reveal">
-          <div className="section-label">Affiliations</div>
-          <h2 className="section-title">Programs &amp; Communities</h2>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginTop: 48 }}>
-          {items.map((p,i)=>(
-            <div key={i} className="reveal card" style={{ textAlign: "center", animationDelay: `${i*.08}s` }}>
-              <div style={{ fontSize: 28, marginBottom: 12, color: p.color }}>{p.icon}</div>
-              <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15, marginBottom: 6, lineHeight: 1.3 }}>{p.name}</div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-muted)" }}>{p.sub}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ── CONTACT ───────────────────────────────────────────────────────────────────
-function ContactSection() {
-  return (
-    <section id="contact" style={{ background: "var(--bg-section)", borderTop: "1px solid var(--border)", textAlign: "center" }}>
-      <div className="container" style={{ maxWidth: 760 }}>
-        <div className="reveal">
-          <div className="section-label" style={{ justifyContent: "center", display: "flex" }}>Available Now</div>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(36px,5vw,60px)", fontWeight: 800, lineHeight: 1.1, marginBottom: 28, letterSpacing: "-.025em" }}>
-            I build systems that{" "}<span style={{ color: "var(--red)" }}>fail loudly</span>,<br />
-            recover{" "}<span style={{ color: "var(--green)" }}>safely</span>,<br />
-            and block{" "}<span style={{ color: "var(--amber)" }}>bad releases</span>{" "}before users are impacted.
-          </h2>
-          <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 12, marginTop: 40 }}>
-            <a href="#case-studies" className="btn btn-primary">Explore My Work →</a>
-            <a href="https://github.com" target="_blank" rel="noreferrer" className="btn btn-outline">GitHub</a>
-            <a href="mailto:kriti@example.com" className="btn btn-outline">Email Me</a>
-            <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="btn btn-outline">LinkedIn</a>
-          </div>
-        </div>
-      </div>
-      <div style={{ marginTop: 80, paddingTop: 28, borderTop: "1px solid var(--border)", fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-muted)", letterSpacing: ".1em" }}>
-        KRITI BEHL · CORRECTNESS, RELIABILITY &amp; INFRASTRUCTURE ENGINEER
-      </div>
-    </section>
-  );
-}
-
-// ── ROOT ──────────────────────────────────────────────────────────────────────
-export default function Page() {
-  useReveal();
-  return (
-    <>
-      <Nav />
-      <main>
-        <HeroSection />
-        <ProofWall />
-        <div className="line-divider" />
-        <OpenSourceSection />
-        <div className="line-divider" />
-        <ExperienceSection />
-        <div className="line-divider" />
-        <CaseStudiesSection />
-        <div className="line-divider" />
-        <SystemsSection />
-        <div className="line-divider" />
-        <SurfaceAreaSection />
-        <div className="line-divider" />
-        <SkillsSection />
-        <div className="line-divider" />
-        <WritingSection />
-        <LogoWall />
-        <ProgramsSection />
-        <ContactSection />
-      </main>
-    </>
   );
 }
