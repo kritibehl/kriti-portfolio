@@ -141,7 +141,7 @@ function Hero() {
           <p className="kicker">Backend · Platform · Reliability</p>
           <h1><span>Making invisible</span><span>failures visible.</span></h1>
           <p className="hero-sub">
-            I build systems that detect hidden risk, explain root cause, and block unsafe releases before users feel them.
+            I build systems that detect hidden risk, explain root cause and block unsafe releases before users feel them.
           </p>
           <CredibilityRail />
           <div className="hero-actions">
@@ -170,7 +170,7 @@ function LivingIncident() {
         <p className="kicker">The Living Incident</p>
         <h2>One incident. Five interventions.</h2>
         <p>
-          Hidden failures emerge as signals. Each project makes one failure visible, explains it, and turns it into a decision.
+          Hidden failures emerge as signals. Each project makes one failure visible, explains it and turns it into a decision.
         </p>
       </div>
       <div className="living-stage" aria-label="Animated production incident map">
@@ -244,16 +244,33 @@ function Artifact({ type }: { type: Artifact }) {
   );
 
   if (type === "agentgrid") return (
-    <div className="artifact agent-artifact">
-      <div className="flight-recorder">
-        {["Question", "Retrieve", "Tool", "Evaluate", "Review"].map((step, i) => <span key={step} style={{ animationDelay: `${i * .18}s` }}>{step}</span>)}
+    <div className="artifact agent-artifact agentgrid-cinematic" aria-label="AgentGrid confidence collapse trace">
+      <div className="agent-topline">AGENT FLIGHT RECORDER</div>
+      <div className="agent-path" aria-hidden="true">
+        {["Question", "Retrieve", "Tool", "Evaluate", "Review"].map((step, i) => (
+          <div className="agent-node" key={step} style={{ animationDelay: `${i * .22}s` }}>
+            <i />
+            <span>{step}</span>
+          </div>
+        ))}
+        <div className="agent-trace-line" />
+        <div className="agent-trace-dot" />
       </div>
-      <div className="decay-meter collapse-bars">
-        <div style={{ "--level": "100%" } as CSSProperties}><b>0.94</b><span>start</span></div>
-        <div style={{ "--level": "78%" } as CSSProperties}><b>0.86</b><span>retrieve</span></div>
-        <div style={{ "--level": "52%" } as CSSProperties}><b>0.77</b><span>tool</span></div>
-        <div style={{ "--level": "22%" } as CSSProperties}><b>0.61</b><span>hold</span></div>
+      <div className="confidence-collapse">
+        {[
+          ["0.94", "intake", "100%"],
+          ["0.86", "retrieve", "78%"],
+          ["0.77", "tool", "52%"],
+          ["0.61", "review", "22%"],
+        ].map(([score, label, level], i) => (
+          <div className="confidence-row" key={score} style={{ "--level": level, animationDelay: `${i * .18}s` } as CSSProperties}>
+            <b>{score}</b>
+            <span>{label}</span>
+            <i />
+          </div>
+        ))}
       </div>
+      <div className="agent-noise" aria-hidden="true" />
       <div className="hold-badge">HUMAN REVIEW</div>
     </div>
   );
@@ -334,7 +351,7 @@ function OpenSource() {
               <span className="spoke s4">runtime observability</span>
             </div>
             <h3>Merged into Temporal Go SDK</h3>
-            <p>Correctness, concurrency safety, workflow testing, and runtime observability.</p>
+            <p>Correctness, concurrency safety, workflow testing and runtime observability.</p>
           </a>
           <a className="oss-card" href="https://github.com/Azure/azure-sdk-for-go/pulls?q=is%3Apr+author%3Akritibehl" target="_blank" rel="noreferrer">
             <div className="oss-hub">
@@ -363,8 +380,13 @@ function Experience() {
   return (
     <section id="experience" className="experience compact-section">
       <div className="container">
-        <p className="kicker">Experience</p>
-        <h2 className="h3">Operations → Reliability → Platform → Production Engineering.</h2>
+        <h2 className="h2">
+  Experience
+</h2>
+
+<p className="career-line">
+  Operations → Reliability → Platform → Production Engineering
+</p>
         <div className="experience-progress" aria-hidden="true"><span>Operations</span><i /> <span>Reliability</span><i /> <span>Platform</span><i /> <span>Production Engineering</span></div>
         <div className="experience-line">
           {rows.map((r) => (
@@ -409,8 +431,8 @@ function Contact() {
   return (
     <section id="contact" className="contact">
       <div className="container">
-        <h2>Interested in backend, platform, reliability, or infrastructure engineering?</h2>
-        <p>Looking for new-grad 2026 opportunities where failure visibility, production safety, and systems thinking matter.</p>
+        <h2>Interested in backend, platform, reliability or infrastructure engineering?</h2>
+        <p>Looking for new-grad 2026 opportunities where failure visibility, production safety and systems thinking matter.</p>
         <div className="contact-actions">
           <a href="mailto:kriti.behl@ufl.edu">Email me</a>
           <a href="https://github.com/kritibehl" target="_blank" rel="noreferrer">GitHub ↗</a>
