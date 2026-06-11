@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Kriti Behl | Backend, Platform & Reliability Engineer",
   description:
-    "Backend, platform, and reliability engineer building systems that reveal hidden failures before production does.",
+    "Making invisible failures visible. Backend, platform, and reliability engineering portfolio by Kriti Behl.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
