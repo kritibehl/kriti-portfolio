@@ -499,7 +499,7 @@ const diagnosticModes: Record<DiagnosticMode, {
     label: 'Closed port', code: 'ECONNREFUSED', stopAt: 2, failingLayer: 'TCP',
     headline: 'Port closed.',
     rootCause: 'The address resolves, but the port has no reachable listener before HTTP can begin.',
-    remediation: ['Confirm the process is listening on the expected port', 'Inspect Service targetPort, firewall, and network policy rules'], latency: '11ms', result: 'BLOCK',
+    remediation: ['Confirm the process is listening on the expected port', 'Inspect Service targetPort, firewall and network policy rules'], latency: '11ms', result: 'BLOCK',
   },
   http: {
     label: 'HTTP failure', code: 'HTTP_503', stopAt: 3, failingLayer: 'HTTP',
@@ -523,7 +523,7 @@ const diagnosticModes: Record<DiagnosticMode, {
     label: 'Dependency failure', code: 'UPSTREAM_TIMEOUT', stopAt: 5, failingLayer: 'Dependency',
     headline: 'Dependency timeout.',
     rootCause: 'Client-to-service networking succeeds; the downstream dependency times out.',
-    remediation: ['Check dependency reachability, DNS, and credentials', 'Apply timeout budgets, circuit breaking, and fallback behavior'], latency: '2.4s', result: 'BLOCK',
+    remediation: ['Check dependency reachability, DNS and credentials', 'Apply timeout budgets, circuit breaking and fallback behavior'], latency: '2.4s', result: 'BLOCK',
   },
 };
 
@@ -789,13 +789,13 @@ export default function Page() {
         <div className="hero-copy reveal">
           <p className="eyebrow">Backend · Platform · AI Infrastructure</p>
           <h1>Complex systems rarely fail for obvious reasons.</h1>
-          <p className="hero-sub">I build tools that make their behavior observable, measurable, and actionable.</p>
+          <p className="hero-sub">I build tools that make their behavior observable, measurable and actionable.</p>
           <div className="hero-actions" aria-label="Primary portfolio actions">
             <a className="hero-primary" href="#observatory">Run a failure scenario <span>↓</span></a>
             <a className="hero-secondary" href="#kubepulse">Open KubePulse lab <span>↗</span></a>
             <a className="hero-text-link" href={links.github} target="_blank" rel="noreferrer">GitHub</a>
           </div>
-          <div className="availability-line"><i /> Open to backend, platform, reliability, and production engineering roles</div>
+          <div className="availability-line"><i /> Open to backend, platform, reliability and production engineering roles</div>
           <OrgRail />
         </div>
         <div id="observatory" className="observatory-wrap reveal delay"><SystemObservatory /></div>
