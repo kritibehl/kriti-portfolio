@@ -126,7 +126,7 @@ footer{position:relative;min-height:78svh;display:grid;align-items:center;paddin
       </div>
       <div class="lensReveal">
         <div class="lensMesh"></div><div class="lensTopo"><div class="edge e1"></div><div class="edge e2"></div><div class="edge e3"></div><div class="edge e4"></div><div class="edge e5"></div>
-          <div class="node n1"><small>Distributed correctness</small><strong>Faultline</strong><span>stale owner rejected at commit · 52 tests</span></div>
+          <div class="node n1"><small>Distributed correctness</small><strong>Faultline</strong><span>stale owner rejected at commit · 58 tests</span></div>
           <div class="node n2"><small>Maintainer reviewed</small><strong>7 + 1 merged</strong><span>Temporal Go SDK + Azure SDK for Go</span></div>
           <div class="node n3"><small>Production engineering</small><strong>Meta × MLH</strong><span>Linux service operations and deployment</span></div>
           <div class="node n4"><small>Reliability diagnostics</small><strong>100K+</strong><span>HSM state transitions processed per run</span></div>
@@ -149,7 +149,7 @@ footer{position:relative;min-height:78svh;display:grid;align-items:center;paddin
 
 <section class="scene fault" id="work">
   <div class="wrap">
-    <div class="sceneHead reveal"><div><div class="label">01 · Distributed correctness</div><h2 class="single-line">FAULTLINE.</h2></div><div class="sceneIntro"><strong>A crash-safe distributed job engine that prevents stale workers from corrupting state.</strong> I designed the lease protocol, fencing-token validation, retry and reaper logic, correctness metrics, and controlled race tests.<div class="sceneProof"><div><b>52</b><span>passing tests</span></div><div><b>4</b><span>strategies compared</span></div><div><b>2</b><span>queue adapters</span></div></div><a class="sceneLink" href="https://github.com/kritibehl/faultline" target="_blank" rel="noopener">Inspect source and test evidence ↗</a></div></div>
+    <div class="sceneHead reveal"><div><div class="label">01 · Distributed correctness</div><h2 class="single-line">FAULTLINE.</h2></div><div class="sceneIntro"><strong>A crash-safe distributed job engine that prevents stale workers from corrupting state.</strong> I designed the lease protocol, fencing-token validation, retry and reaper logic, correctness metrics, and controlled race tests.<div class="sceneProof"><div><b>58</b><span>passing tests</span></div><div><b>4</b><span>strategies compared</span></div><div><b>2</b><span>queue adapters</span></div></div><a class="sceneLink" href="https://github.com/kritibehl/faultline" target="_blank" rel="noopener">Inspect source and test evidence ↗</a></div></div>
     <div class="faultStage reveal"><div class="owner a"><small>Worker A · expired owner</small><strong>41</strong></div><div class="owner b"><small>Worker B · current owner</small><strong>42</strong></div><div class="validator"><span>Fencing validator</span></div><div class="writeLane"></div><div class="packet" id="packet"></div><div class="reject">×</div><div class="faultResult"><b>00</b><span>duplicate commits observed</span></div></div>
   </div>
 </section>
